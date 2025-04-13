@@ -1,0 +1,22 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "scripts": {
+    "sass": "sass scss/styles.scss css/styles.css && cd node-css-inject && npm run dev && cd ..",
+    "deploy": "scp css/styles.css joera:/srv/neutral_hosting/public/joeramulders/css/styles.css",
+    "serve": "http-server output -p 3008 --cors -c-1",
+    "bulkrender": "cd node-renderer && cross-env POST_TYPE=$npm_config_type npm run dev && cd .."
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "sass": "^1.83.0",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "blockstore-core": "^5.0.2",
+    "form-data": "^4.0.1",
+    "ipfs-unixfs-importer": "^15.3.1",
+    "node-fetch": "^2.7.0",
+    "pinata-web3": "^0.5.4"
+  }
+}
