@@ -9,14 +9,14 @@
                 "slug": "home_intro",
                 "key": "post_type",
                 "value": "home-intro",
-                "query": "SELECT * FROM {{table}} WHERE {{key}} = '{{value}}' AND language = '{{lang}}'"
+                "query": "SELECT * FROM {{table}} WHERE publication = '{{publication}}' AND {{key}} = '{{value}}' AND language = '{{lang}}'"
             },
             {
                 "source": "orbisdb",
                 "slug": "blogs",
                 "key": "post_type",
                 "value": "blog",
-                "query": "SELECT * FROM {{table}} WHERE {{key}} = '{{value}}' AND language = '{{lang}}' ORDER BY position ASC;"
+                "query": "SELECT * FROM {{table}} WHERE publication = '{{publication}}' AND{{key}} = '{{value}}' AND language = '{{lang}}' ORDER BY position ASC;"
             }
         ],
         "ripples": []
