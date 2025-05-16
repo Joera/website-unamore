@@ -1,14 +1,6 @@
 <!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <title>{{body.title}}</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="{{ trim_seo_desc body.content }}" />
-  <link rel="icon" href="favicon.png">
-  <link rel="stylesheet" href="{{assets_url}}/css/styles.css">
-  <link rel="stylesheet" type="text/css" href="https://cloud.typography.com/7060374/6317832/css/fonts.css" />
-</head>
+<html lang="{{language}}">
+{{> head }}
 <body>
 
 {{> header}}
@@ -21,8 +13,8 @@
 <main>
        <section class="small-container">
               <article>
-                     <h1>{{body.title}}</h1>
-                     <div>{{{ markdown body.content}}}</div>
+                     <h1>{{title}}</h1>
+                     <div>{{{ markdown content}}}</div>
               </article>
        </section>   
 

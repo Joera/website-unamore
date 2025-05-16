@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{language}}">
 <head>
   {{> head }}
 <body>
@@ -14,11 +14,11 @@
  <main>
     <article>
       <section class="small-container blog_header">
-        {{#if body.thumbnail }}
+        {{#if custom.thumbnail }}
           <img class="thumb" src="../../img/{{custom.thumbnail}}" />
         {{/if}}
         <h1>{{title}}</h1>
-        {{!-- <span class="date">{{format_date body.creation_date}}</span> --}}
+        <span class="date">{{format_date creation_date}}</span>
       </section>
       <section class="small-container">{{{ extract_images content }}}</section> 
     </article> 
