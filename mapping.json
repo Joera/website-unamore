@@ -84,7 +84,7 @@
 "ripples" : 
     [
         {
-            "origins" : ["post"],
+            "origins" : ["_post"],
             "destination" : "archief",
             "reference": "archief",
             "query" : "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' AND language = '{{lang}}' ORDER BY creation_date ASC;"
