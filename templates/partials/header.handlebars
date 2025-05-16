@@ -1,1 +1,24 @@
-<header></header>
+<script>
+  const toggleMenu = function() {
+
+    document.getElementsByTagName('aside')[0].classList.toggle('open')
+    document.getElementsByTagName('body')[0].classList.toggle('fixed')
+  }
+
+  
+
+</script>
+
+<header>
+    <a href="/">
+        <div class="image-container">
+            <h1>l'Ouverture d'Unamore</h1>
+        </div>
+      
+    </a>
+
+    <span class="button" onclick="toggleMenu()">Menu</span>
+
+
+</header>
+

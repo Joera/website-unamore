@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <title>{{body.title}}</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="{{ trim_seo_desc body.content }}" />
-  <link rel="icon" href="favicon.png">
-  <link rel="stylesheet" href="../{{assets_url}}/css/styles.css">
-  <link rel="stylesheet" type="text/css" href="https://cloud.typography.com/7060374/6317832/css/fonts.css" />
-</head>
+  {{> head }}
 <body>
 
     {{> header}}
@@ -22,12 +15,12 @@
     <article>
       <section class="small-container blog_header">
         {{#if body.thumbnail }}
-          <img class="thumb" src="../../img/{{body.thumbnail}}" />
+          <img class="thumb" src="../../img/{{custom.thumbnail}}" />
         {{/if}}
-        <h1>{{body.title}}</h1>
+        <h1>{{title}}</h1>
         {{!-- <span class="date">{{format_date body.creation_date}}</span> --}}
       </section>
-      <section class="small-container">{{{ extract_images (body.content) }}}</section> 
+      <section class="small-container">{{{ extract_images (content) }}}</section> 
     </article> 
 
     {{> tabs}}
