@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{body.title}}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="{{assets_url}}/styles.css">
+  <link rel="stylesheet" type="text/css" href="https://cloud.typography.com/7060374/6317832/css/fonts.css" />
+</head>
+<body>
+ 
+ <main>
+
+  <section class="small-container">
+  <article>
+        <img class="thumb" src="{{body.thumbnail}}" />
+       <h1>change {{body.title}}</h1>
+       {{!-- <span class="date">{{format_date body.date}}</span> --}}
+      <div>
+          {{{body.content}}}
+      </div>
+  </article>
+  </section> 
+</main>
+</body>
+</html>
