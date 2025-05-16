@@ -1,14 +1,21 @@
-// Your SCSS styles go here
-@use 'styleguide/colours';
-@use 'styleguide/typography';
-@use 'styleguide/breakpoints';
+@import 'styleguide/__breakpoints.scss';
+@import 'styleguide/__fonts.scss';
+@import 'styleguide/_colours.scss';
+@import 'styleguide/_typography.scss';
+@import 'styleguide/lists.scss';
+@import 'styleguide/button.scss';
 
-@use 'basics/main';
-@use 'basics/containers';
-@use 'basics/images';
-@use 'basics/layouts';
-
-
+@import 'layouts/general.scss';
+@import 'layouts/header.scss';
+@import 'layouts/aside.scss';
+@import 'layouts/containers.scss';
+@import 'layouts/gallery.scss';
+@import 'layouts/post.scss';
+@import 'layouts/page.scss';
+@import 'layouts/series.scss';
+@import 'layouts/tabs.scss';
+@import 'layouts/footer.scss';
+@import 'layouts/archief.scss';
 
 
 
