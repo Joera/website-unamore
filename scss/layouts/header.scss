@@ -1,0 +1,86 @@
+header {
+
+    width: 100%;
+    padding: 0 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    @media (min-width: $breakpoint-md) {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .image-container {
+        background-image: url("https://unamore.com/img/uploads/2014/08/10986-e1420203069574-816x1024.jpg"); /* The image used - important! */
+        background-size: cover;
+        position: relative; /* Needed to position the cutout text in the middle of the image */
+        height: 200px; /* Some height */
+        width: 100%;
+        background-position: 10% 40%;
+
+        @media (min-width: $breakpoint-md) {
+            width: 900px;
+        }
+    }
+
+    a {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: none;
+    
+
+        @media (min-width: $breakpoint-md) {
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+        }
+    
+    }
+
+    h1 {
+        font-size: 3.8rem;
+        font-weight: 700;
+        background-color: white;
+        color: black;
+        margin: 30px auto;
+        padding: 30px 0px;
+        width: 100%;
+        height: 200px;
+        text-align: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        mix-blend-mode: screen;
+
+        @media (min-width: $breakpoint-sm) {
+            font-size: 4.8rem;
+        }
+    }
+
+    .button {
+
+        margin-top: -1.5rem;
+        margin-bottom: 4rem;
+
+
+        @media (min-width: $breakpoint-sm) {
+
+            margin-top: -3.5rem;
+            margin-bottom: 6rem;
+
+        }
+        
+        @media (min-width: $breakpoint-md) {
+
+            display: none;
+        }
+    }
+}
+
+
+  

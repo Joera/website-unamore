@@ -1,0 +1,86 @@
+@mixin regular {
+    // font-family: "Surveyor Text A", "Surveyor Text B";
+    // font-style: normal;
+    // font-weight: 300;
+    font-size: 1.125rem;
+    line-height: 1.825;
+
+    font-family: "Surveyor SSm A", "Surveyor SSm B";
+    font-style: normal;
+    font-weight: 300;
+}
+
+@mixin digital {
+    // font-family: "Operator Light";
+    font-size: .75rem;
+    line-height: 1.33; 
+    font-family: "Archer SSm A", "Archer SSm B";
+    font-style: normal;
+    font-weight: 500;
+    // font-family: "Idlewild SSm A", "Idlewild SSm B";
+    // font-style: normal;
+    // font-weight: 600;
+}
+
+@mixin display {
+    // font-family: "Ringside Condensed SSm A", "Ringside Condensed SSm B";
+    // font-style: italic;
+    // font-weight: 300;
+    font-size: 1.45rem;
+    line-height: 1.125; 
+
+    // font-family: "Surveyor Fine A", "Surveyor Fine B";
+    // font-style: italic;
+    // font-weight: 300;
+    font-family: "Surveyor Display A", "Surveyor Display B";
+    font-style: normal;
+    font-weight: 500;
+    // font-family: "Didot 11 A", "Didot 11 B";
+    // font-style: italic;
+    // font-weight: 700;
+//     font-family: "Hoefler Titling A", "Hoefler Titling B";
+// font-style: italic;
+// font-weight: 700;
+}
+
+@mixin uppercase {
+    font-family: "Gotham Light";
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: .75rem; 
+}
+
+body, input {
+    @include regular;
+    color: $darkBlue
+}
+
+
+  
+label {
+    @include uppercase;
+}
+    
+  
+  a {
+    color: $darkBlue;
+    text-decoration: none;
+    border-bottom: 1px solid $darkBlue; }
+
+h1 {
+    @include display;
+    font-size: 2.3rem;
+    line-height: 1.075;
+    margin-bottom: 3.5rem;
+}
+
+h3 {
+    
+    margin: 0;
+}
+
+.date {
+
+//    font-style: italic;
+
+}

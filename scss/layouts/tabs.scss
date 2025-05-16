@@ -1,0 +1,28 @@
+.tabs {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+
+    li a {
+
+        border: 1px solid $darkBlue;
+        border-radius: 7px;
+        padding: .5rem 1.5rem;
+        margin: .75rem;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+
+        span {
+            font-size: .77rem;
+            padding: .25rem;
+        }
+
+        &:hover {
+            background: $darkBlue;
+            color: white;
+        }
+    }
+}

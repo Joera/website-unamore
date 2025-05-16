@@ -1,0 +1,19 @@
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        padding: 0;
+        margin:  0;
+
+        &.year_breaker {
+
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 2rem;
+
+        }
+    }
+
+}

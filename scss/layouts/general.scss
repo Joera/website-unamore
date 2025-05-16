@@ -1,0 +1,39 @@
+html, body {
+	margin: 0; 
+	padding: 0; 
+}
+
+html {
+
+	display: flex;
+	font-size: 90%;
+
+	@media (min-width : $breakpoint-bax) {
+		font-size: 100%;
+	}
+}
+
+body {
+	position: relative;
+	background: white;
+	// padding-top: 60px;
+	width: 100vw;
+	overflow-x: hidden;
+	flex-direction: column;
+    display: flex;
+    justify-content: flex-start;
+
+	&.fixed {
+		position: fixed;
+	}
+ }
+
+ main {
+	flex-direction: column;
+    display: flex;
+    justify-content: flex-start;
+	padding-bottom: 6rem;
+ }
+
+.noscript { display: none; }
+

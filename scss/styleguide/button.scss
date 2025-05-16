@@ -1,0 +1,11 @@
+button, .button {
+
+    border: 1px solid $darkBlue;
+    border-radius: 7px;
+    padding: .5rem 1.5rem;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    position: relative;
+
+}

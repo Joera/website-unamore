@@ -1,0 +1,76 @@
+.serie-container {
+
+    margin-bottom: 6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.series_introduction {
+
+    margin-bottom: 6rem;
+    text-align: center;
+
+    @media (min-width: $breakpoint-sm) {
+       // text-align: left;
+    }
+}
+
+.painting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: calc(100% - 1.5rem);
+
+    @media (min-width : $breakpoint-sm) {
+        width: 100%;
+    }
+
+    img {
+
+        width: 100%;
+        height:  auto;
+
+        @media (min-width : $breakpoint-md) {
+            height: 80vh;
+            width: auto;
+        }
+
+    }
+}
+
+.block_painting {
+
+    margin: 2rem 0 4rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+
+
+
+
+    h3 {
+        font-family: "Surveyor Display A", "Surveyor Display B";
+        font-style: normal;
+        font-weight: 700;
+        font-size: 1.6rem;
+        text-align: center;
+        line-height: 1.25;
+        margin-bottom: 1rem;
+
+    }
+
+    span {
+
+        font-family: "Surveyor SSm A", "Surveyor SSm B";
+        font-style: normal;
+        font-weight: 400;
+    }
+
+    > div {
+        text-align: center;
+    }
+}
