@@ -5,7 +5,7 @@ export const helpers = [
         if (!input) return "";
   
         let arr = input.split('<').map(item => item.trim());
-        let prevWasImage = false;
+        let prevWasImage = false; 
   
         arr[0] = "";
         arr.pop();
@@ -13,14 +13,6 @@ export const helpers = [
         arr = arr.map(item => {
           if (item.startsWith("img") && !prevWasImage) {
             prevWasImage = true;
-            return `/section><section class='container images'><${item}`;
-          } else if (!item.startsWith("img") && prevWasImage) {
-            prevWasImage = false;
-            return `/section><section class='small-container'><${item}`;
-          } else {
-            return item;
-          }
-        });
   
         return arr.join("<");
       }

@@ -75,22 +75,33 @@ export const helpers =  [
     {
         name: "backgroundify",
         helper: (content: string) => {
-
-            if (content != undefined) {
+            if (!content) return '';
+            
+            try {
+                if (typeof content !== 'string') {
+                    content = String(content);
+                }
+                
                 content = content.replace(/<p>/g,'<p><span>');
                 content = content.replace(/<\/p>/g,'</span></p>');
+                
+                return content;
+            } catch (error) {
+                console.error('Error in backgroundify helper:', error);
+                return '';
             }
-            return content;
         }
     },
     {
         name: "ifEquals",
-        helper: (a: string, b: string, options: any) => {
-            if (a === b) {
-                return options.fn(this);
-            } else {
-                return options.inverse(this);
+        helper: function(a: string, b: string, options: any) {
+            if (!options || typeof options.fn !== 'function') {
+                return '';
             }
+            if (a === b) {
+                return options.fn();
+            }
+            return typeof options.inverse === 'function' ? options.inverse() : '';
         }
     },
     {
@@ -248,6 +259,102 @@ export const helpers =  [
         }
     },
     {
+        name: "formatDate",
+        helper: (date: string | number, language: string) => {
+            try {
+                let parsed;
+                if (typeof date === 'string') {
+                    // Try parsing as ISO string first
+                    parsed = new Date(date);
+                    // If invalid, try parsing as Unix timestamp
+                    if (isNaN(parsed.getTime())) {
+                        parsed = new Date(parseInt(date) * 1000);
+                    }
+                } else {
+                    // Assume number is Unix timestamp
+                    parsed = new Date(date * 1000);
+                }
+
+                if (isNaN(parsed.getTime())) {
+                    console.error('formatDate: Invalid date:', date);
+                    return '';
+                }
+
+                let lCode = '';
+                switch (language) {
+                    case 'nl':
+                        lCode = 'nl-NL'
+                        break;
+                    default:
+                        lCode = 'en-US'
+                        break; 
+                        
+
+                }
+
+                // Format date in Dutch style
+                const formatter = new Intl.DateTimeFormat(lCode, {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                });
+                
+                return formatter.format(parsed);
+            } catch (error) {
+                console.error('formatDate error:', error);
+                return '';
+            }
+        }
+    },
+    {
+        name: "formatDateAsMonthYear",
+        helper: (date: string | number, language: string) => {
+            try {
+                let parsed;
+                if (typeof date === 'string') {
+                    // Try parsing as ISO string first
+                    parsed = new Date(date);
+                    // If invalid, try parsing as Unix timestamp
+                    if (isNaN(parsed.getTime())) {
+                        parsed = new Date(parseInt(date) * 1000);
+                    }
+                } else {
+                    // Assume number is Unix timestamp
+                    parsed = new Date(date * 1000);
+                }
+
+                if (isNaN(parsed.getTime())) {
+                    console.error('formatDate: Invalid date:', date);
+                    return '';
+                }
+
+                let lCode = '';
+                switch (language) {
+                    case 'nl':
+                        lCode = 'nl-NL'
+                        break;
+                    default:
+                        lCode = 'en-US'
+                        break; 
+                        
+
+                }
+
+                // Format date in Dutch style
+                const formatter = new Intl.DateTimeFormat(lCode, {
+                    // day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+                
+                return formatter.format(parsed);
+            } catch (error) {
+                console.error('formatDate error:', error);
+                return '';
+            }
+        }
+    },
+    {
         name: "log",
         helper: (data: string) => {
             return "<script>console.log(" + data + ");</script>";
@@ -256,8 +363,8 @@ export const helpers =  [
     },
     {
         name: "json",
-        helper: (context: string) => {
-            return JSON.stringify(context);
+        helper: (context: any) => {
+            return JSON.stringify(context, null, 2);
         }
     },
     {
@@ -274,4 +381,3 @@ export const helpers =  [
         }
     }
 ];
-
