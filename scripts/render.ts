@@ -8,7 +8,7 @@ import { uploadToPinata } from './pinata';
 import { clearFolder} from './fs';
 import { downloadHTML} from './ipfs';
 
-const MAIN_ACTION_HASH = "QmQw96EFJ7Moc4o5C91Cu6yJ1zeJH487HYaCtMt9KsouaB";
+const MAIN_ACTION_HASH = "Qme9vqGYj7wZMpwUVtMfesddHQ6qBPA3Pwh7BpU99hXTst";
 const STREAM_ID = 'kjzl6kcym7w8y7mamk4c4xdbnn4y963xih6fbe1blmw1ac20ac4rtbakp24psou'
 const publication = "unamore.--web.eth";
 const safeAddress = "0xd065d8C47994cAC57e49785aCEE04FcA495afac4";
@@ -104,6 +104,8 @@ const main = async () => {
     // console.log(1);
     // console.log(MAIN_ACTION_HASH);
     // console.log(sessionSignatures);
+
+    console.log(render_action.IpfsHash);
 
     try {
 

@@ -5,6 +5,10 @@ import Safe from '@safe-global/protocol-kit';
 import { ethers } from 'ethers';
 require('dotenv').config();
 
+const publication = "unamore.--web.eth";
+const safeAddress = "0xd065d8C47994cAC57e49785aCEE04FcA495afac4";
+
+
 const main = async (filePath: string) => {
 
     const res = await uploadToPinata(filePath);
@@ -23,6 +27,8 @@ const main = async (filePath: string) => {
     const apiKit = new SafeApiKit({
         chainId: 84532n
     })
+
+
 
      // Als je dit doet dan op de publicatie .... 
 
