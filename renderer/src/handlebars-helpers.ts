@@ -3,7 +3,7 @@ export const helpers =  [
         name: "extract_images",
         helper: (input: string) => {
 
-            if(!input) return "";
+            if(!input) return "x";
 
             let arr: string[] = input.split('<').map((item) => item.trim());
 

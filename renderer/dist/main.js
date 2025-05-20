@@ -8,7 +8,7 @@
     {
       name: "extract_images",
       helper: (input) => {
-        if (!input) return "";
+        if (!input) return "x";
         let arr = input.split("<").map((item) => item.trim());
         let prevWasImage = false;
         arr[0] = "";
