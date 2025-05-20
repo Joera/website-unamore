@@ -738,6 +738,7 @@
   var main = async () => {
     try {
       const result = await renderHTML(config, templateConfig, templateData);
+      console.log("result in child", result);
       LitActions.setResponse({ response: JSON.stringify({ success: true, html: result }) });
     } catch (error) {
       console.log("Error updating root:", error);
