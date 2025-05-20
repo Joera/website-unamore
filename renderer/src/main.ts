@@ -1,13 +1,11 @@
-import { AuthSig } from "@lit-protocol/types";
-import { template } from "handlebars";
 import { renderHTML } from "./html.ctrlr";
 
-export interface ILitActionContext {
-    authSig: AuthSig;
-    ipfsId: string;
-    pkp: {
-        tokenId: string;
-    }
+declare global {
+    const config: any;
+    const templateConfig: any;
+    const templateData: any;
+    const LitActions: any;
+
 }
 
 const main = async () => {
