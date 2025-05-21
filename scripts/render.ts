@@ -8,7 +8,7 @@ import { uploadToPinata } from './pinata';
 import { clearFolder} from './fs';
 import { downloadHTML} from './ipfs';
 
-const MAIN_ACTION_HASH = "QmQqs1nMjRqvQEgno4Axmp4simxmJyYyJJ4qHQtWbykbeu";
+const MAIN_ACTION_HASH = "QmeZ5WL8XRcX3B4FoEPGHBaQfXktggtkabVAVzZ9FnDChB";
 const STREAM_ID = 'kjzl6kcym7w8y7mamk4c4xdbnn4y963xih6fbe1blmw1ac20ac4rtbakp24psou'
 const publication = "unamore.--web.eth";
 const safeAddress = "0xd065d8C47994cAC57e49785aCEE04FcA495afac4";
@@ -19,6 +19,8 @@ const SELECTED_LIT_NETWORK = LIT_NETWORK.Datil;
 const main = async () => {
 
     let render_action = await uploadToPinata('./renderer/dist/main.js');
+
+    console.log("Main Action CID:", render_action.IpfsHash);
 
     const litNodeClient = new LitNodeClient({
         litNetwork: SELECTED_LIT_NETWORK,
