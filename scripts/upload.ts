@@ -18,15 +18,15 @@ const main = async (filePath: string) => {
 
     // const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!);
 
-    const protocolKit = await Safe.init({
-        provider: process.env.BASE_SEPOLIA_RPC_URL!,
-        signer: process.env.PRIVATE_KEY!,
-        safeAddress: process.env.PROTOCOL_SAFE_ADDRESS!
-    })
+    // const protocolKit = await Safe.init({
+    //     provider: process.env.BASE_SEPOLIA_RPC_URL!,
+    //     signer: process.env.PRIVATE_KEY!,
+    //     safeAddress: process.env.PROTOCOL_SAFE_ADDRESS!
+    // })
 
-    const apiKit = new SafeApiKit({
-        chainId: 84532n
-    })
+    // const apiKit = new SafeApiKit({
+    //     chainId: 84532n
+    // })
 
 
 

@@ -13,7 +13,7 @@ const main = async () => {
     try {
 
         console.log("in child");
-        const result = {}; // await renderHTML(config, templateConfig, templateData);
+        const result = await renderHTML(config, templateConfig, templateData);
         console.log("result in child", result);
         LitActions.setResponse({ response: JSON.stringify({ success: true, html: result  }) });
 
