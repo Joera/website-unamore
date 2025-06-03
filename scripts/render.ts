@@ -20,7 +20,7 @@ const main = async () => {
 
     let render_action = await uploadToPinata('./renderer/dist/main.js');
 
-    console.log("Main Action CID:", render_action.IpfsHash);
+    console.log("render CID:", render_action.IpfsHash);
 
     const litNodeClient = new LitNodeClient({
         litNetwork: SELECTED_LIT_NETWORK,
@@ -98,7 +98,7 @@ const main = async () => {
         },
     });
 
-    // console.log(1);
+    // console.log(1);../renderAction/main.js
     // console.log(MAIN_ACTION_HASH);
     // console.log(sessionSignatures);
 
