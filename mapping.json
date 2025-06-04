@@ -1,7 +1,7 @@
 {
   "templateConfig": [
     {
-      "reference": "hompage",
+      "reference": "homepage",
       "file": "homepage.handlebars",
       "path": "/",
       "collections": []
