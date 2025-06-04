@@ -19,6 +19,9 @@
        </section>   
 
        <section id="archief" class="small-container">
+              {{#each posts}}
+                     {{this.title}}
+              {{/each}}
               {{ unique_years posts  }}
               <ul>
               {{#each years as |year| }}
