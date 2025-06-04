@@ -1,99 +1,99 @@
-{ "templateConfig": 
-    [{
-        "reference": "home",
-        "file": "home.handlebars",
-        "path": "/",
-        "collections": []
+{
+  "templateConfig": [
+    {
+      "reference": "hompage",
+      "file": "homepage.handlebars",
+      "path": "/",
+      "collections": []
     },
     {
-        "reference": "post",
-        "file": "post.handlebars",
-        "path": "/nieuwsbrieven/{slug}/",
-        "collections": [
-            {
-                "slug": "body", 
-                "source": "orbisdb",
-                "key": "posts",
-                "value": "post",
-                "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
-            },
-            {
-                "slug": "posts",
-                "source": "orbisdb",
-                "key": "posts",
-                "value": "post",
-                "query": "SELECT * from {{table}} WHERE post_type = 'post' LIMIT 2"
-            }
-        ]
-    },
-    {
-        "reference": "archief",
-        "file": "archief.handlebars",
-        "path": "/nieuwsbrieven/",
-        "collections": [
-            {
-                "slug": "posts",
-                "source": "tableland",
-                "key": "posts",
-                "value": "post",
-                "query": "SELECT * from {table} WHERE post_type = 'post' ORDER BY creation_date DESC"
-            }
-        ]
-    },
-    {
-        "reference": "page",
-        "file": "page.handlebars",
-        "path": "/{slug}/",
-        "collections": []
-    },
-    {
-        "reference": "painting",
-        "file": "",
-        "path": "",
-        "collections": []
-    },
-    {
-        "reference": "serie_v1",
-        "file": "serie_v1.handlebars",
-        "path": "/serie/{slug}/",
-        "collections": [
-            {
-                "slug": "paintings",
-                "source": "tableland",
-                "key": "paintings",
-                "value": "args",
-                "query": "SELECT * from {table} WHERE post_type = 'painting' AND tags LIKE '%{value}%' ORDER BY parent ASC"
-            }
-        ]
-    },
-    {
-        "reference": "serie",
-        "file": "serie.handlebars",
-        "path": "/schilderijen/{slug}/",
-        "collections": [
-            {
-                "slug": "images",
-                "source": "rest",
-                "key": "images",
-                "value": "",
-                "query": "http://unamore.publikaan.nl/api/?tags=cd.{<args>}"
-            }
-        ]
-    }
-],
-"ripples" : 
-    [
+      "reference": "post",
+      "file": "post.handlebars",
+      "path": "/nieuwsbrieven/{slug}/",
+      "collections": [
         {
-            "origins" : ["_post"],
-            "destination" : "archief",
-            "reference": "archief",
-            "query" : "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' AND language = '{{lang}}' ORDER BY creation_date ASC;"
+          "slug": "body",
+          "source": "orbisdb",
+          "key": "posts",
+          "value": "post",
+          "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
         },
         {
-            "origins" : ["painting"],
-            "destination" : "serie_v1",
-            "reference": "tag",
-            "query" : "SELECT * from {table} WHERE post_type = 'serie_v1' AND title LIKE '%{value}%' ORDER BY creation_date ASC;"
+          "slug": "posts",
+          "source": "orbisdb",
+          "key": "posts",
+          "value": "post",
+          "query": "SELECT * from {{table}} WHERE post_type = 'post' LIMIT 2"
         }
-    ]
+      ]
+    },
+    {
+      "reference": "archief",
+      "file": "archief.handlebars",
+      "path": "/nieuwsbrieven/",
+      "collections": [
+        {
+          "slug": "posts",
+          "source": "tableland",
+          "key": "posts",
+          "value": "post",
+          "query": "SELECT * from {table} WHERE post_type = 'post' ORDER BY creation_date DESC"
+        }
+      ]
+    },
+    {
+      "reference": "page",
+      "file": "page.handlebars",
+      "path": "/{slug}/",
+      "collections": []
+    },
+    {
+      "reference": "painting",
+      "file": "",
+      "path": "",
+      "collections": []
+    },
+    {
+      "reference": "serie_v1",
+      "file": "serie_v1.handlebars",
+      "path": "/serie/{slug}/",
+      "collections": [
+        {
+          "slug": "paintings",
+          "source": "tableland",
+          "key": "paintings",
+          "value": "args",
+          "query": "SELECT * from {table} WHERE post_type = 'painting' AND tags LIKE '%{value}%' ORDER BY parent ASC"
+        }
+      ]
+    },
+    {
+      "reference": "serie",
+      "file": "serie.handlebars",
+      "path": "/schilderijen/{slug}/",
+      "collections": [
+        {
+          "slug": "images",
+          "source": "rest",
+          "key": "images",
+          "value": "",
+          "query": "http://unamore.publikaan.nl/api/?tags=cd.{<args>}"
+        }
+      ]
+    }
+  ],
+  "ripples": [
+    {
+      "origins": ["_post"],
+      "destination": "archief",
+      "reference": "archief",
+      "query": "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' AND language = '{{lang}}' ORDER BY creation_date ASC;"
+    },
+    {
+      "origins": ["painting"],
+      "destination": "serie_v1",
+      "reference": "tag",
+      "query": "SELECT * from {table} WHERE post_type = 'serie_v1' AND title LIKE '%{value}%' ORDER BY creation_date ASC;"
+    }
+  ]
 }
