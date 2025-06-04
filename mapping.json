@@ -23,7 +23,7 @@
           "source": "orbisdb",
           "key": "posts",
           "value": "post",
-          "query": "SELECT * from {{table}} WHERE post_type = 'post' LIMIT 2"
+          "query": "SELECT * from {{table}} WHERE publications ? '{{publication}}' AND post_type = 'post' LIMIT 2"
         }
       ]
     },
@@ -33,11 +33,18 @@
       "path": "/nieuwsbrieven/",
       "collections": [
         {
+          "slug": "body",
+          "source": "orbisdb",
+          "key": "posts",
+          "value": "post",
+          "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
+        },
+        {
           "slug": "posts",
           "source": "tableland",
           "key": "posts",
           "value": "post",
-          "query": "SELECT * from {table} WHERE post_type = 'post' ORDER BY creation_date DESC"
+          "query": "SELECT * from {table} WHERE publications ? '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC"
         }
       ]
     },
