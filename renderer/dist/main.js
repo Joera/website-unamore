@@ -6,6 +6,54 @@
   // renderer/src/handlebars-helpers.ts
   var helpers = [
     {
+      name: "unique_years",
+      helper: function(posts, options) {
+        if (!posts || !Array.isArray(posts) || posts.length === 0) {
+          return [];
+        }
+        const years = posts.filter((post) => post.creation_date).map((post) => {
+          const dateStr = post.creation_date;
+          const match = dateStr.match(/\b(19|20)\d{2}\b/);
+          if (match) {
+            return match[0];
+          }
+          if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
+            return dateStr.substring(0, 4);
+          }
+          return null;
+        }).filter((year) => year !== null);
+        const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
+        if (options && options.data) {
+          options.data.root.years = uniqueYears;
+        }
+        return uniqueYears;
+      }
+    },
+    {
+      name: "filter_by_year",
+      helper: function(year, posts, options) {
+        if (!posts || !Array.isArray(posts) || !year) {
+          return [];
+        }
+        const filtered = posts.filter((post) => {
+          if (!post.creation_date) return false;
+          const dateStr = post.creation_date;
+          const match = dateStr.match(/\b(19|20)\d{2}\b/);
+          if (match && match[0] === year) {
+            return true;
+          }
+          if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
+            return true;
+          }
+          return false;
+        });
+        if (options && options.data) {
+          options.data.root.filtered = filtered;
+        }
+        return filtered;
+      }
+    },
+    {
       name: "extract_images",
       helper: (input) => {
         if (!input) return "x";
@@ -560,26 +608,29 @@
     if (!text.includes("{{#")) return text;
     let result = text;
     const ifPattern = /{{#if\s+([^}]+)}}\s*([\s\S]*?)(?:{{else}}\s*([\s\S]*?))?{{\/if}}/g;
-    result = result.replace(ifPattern, (match, condition, content, elseContent = "") => {
-      try {
-        const trimmedCondition = condition.trim();
-        if (trimmedCondition.startsWith("(eq ")) {
-          const argsStr = trimmedCondition.slice(4, -1).trim();
-          const args = argsStr.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
-          if (args.length === 2) {
-            const [arg1, arg2] = args;
-            const val1 = arg1.startsWith('"') ? arg1.slice(1, -1) : arg1.startsWith("'") ? arg1.slice(1, -1) : getContextValue(arg1, context);
-            const val2 = arg2.startsWith('"') ? arg2.slice(1, -1) : arg2.startsWith("'") ? arg2.slice(1, -1) : getContextValue(arg2, context);
-            return val1 === val2 ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
+    result = result.replace(
+      ifPattern,
+      (match, condition, content, elseContent = "") => {
+        try {
+          const trimmedCondition = condition.trim();
+          if (trimmedCondition.startsWith("(eq ")) {
+            const argsStr = trimmedCondition.slice(4, -1).trim();
+            const args = argsStr.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+            if (args.length === 2) {
+              const [arg1, arg2] = args;
+              const val1 = arg1.startsWith('"') ? arg1.slice(1, -1) : arg1.startsWith("'") ? arg1.slice(1, -1) : getContextValue(arg1, context);
+              const val2 = arg2.startsWith('"') ? arg2.slice(1, -1) : arg2.startsWith("'") ? arg2.slice(1, -1) : getContextValue(arg2, context);
+              return val1 === val2 ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
+            }
           }
+          const value = getContextValue(trimmedCondition, context);
+          return value ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
+        } catch (error) {
+          console.error("Error in if block:", error);
+          return "";
         }
-        const value = getContextValue(trimmedCondition, context);
-        return value ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
-      } catch (error) {
-        console.error("Error in if block:", error);
-        return "";
       }
-    });
+    );
     const eachPattern = /{{#each\s+([^}]+)}}\s*([\s\S]*?){{\/each}}/g;
     result = result.replace(eachPattern, (match, arrayPath, content) => {
       const array = getContextValue(arrayPath.trim(), context);
@@ -649,9 +700,12 @@
     const processedPartials = {};
     for (const partial of partials) {
       try {
-        const response = await fetch(`https://ipfs.transport-union.dev/api/v0/cat?arg=${partial.cid}`, {
-          method: "POST"
-        });
+        const response = await fetch(
+          `https://ipfs.transport-union.dev/api/v0/cat?arg=${partial.cid}`,
+          {
+            method: "POST"
+          }
+        );
         if (!response.ok) continue;
         let content = await response.text();
         content = cleanTemplateString(content);

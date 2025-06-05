@@ -1,14 +1,14 @@
 export const helpers =  [
     {
         name: "unique_years",
-        helper: function(posts: any[], options: any) {
+        helper: function(posts: any[]) {
             if (!posts || !Array.isArray(posts) || posts.length === 0) {
                 return [];
             }
 
             // Extract years from creation_date fields
             const years = posts
-                .filter(post => post.creation_date)
+                .filter(post => post && post.creation_date)
                 .map(post => {
                     // Assuming creation_date is in ISO format or contains year
                     const dateStr = post.creation_date;
@@ -28,24 +28,22 @@ export const helpers =  [
             // Get unique years and sort in descending order
             const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
             
-            // Set years as a global variable for the template
-            if (options && options.data) {
-                options.data.root.years = uniqueYears;
-            }
+            // Set years directly in the global scope
+            this.years = uniqueYears;
             
-            return uniqueYears;
+            return '';
         }
     },
     {
         name: "filter_by_year",
-        helper: function(year: string, posts: any[], options: any) {
+        helper: function(year: string, posts: any[]) {
             if (!posts || !Array.isArray(posts) || !year) {
                 return [];
             }
 
             // Filter posts by the given year
             const filtered = posts.filter(post => {
-                if (!post.creation_date) return false;
+                if (!post || !post.creation_date) return false;
                 
                 const dateStr = post.creation_date;
                 // Extract year using regex
@@ -60,12 +58,10 @@ export const helpers =  [
                 return false;
             });
 
-            // Set filtered posts as a global variable for the template
-            if (options && options.data) {
-                options.data.root.filtered = filtered;
-            }
+            // Set filtered posts directly in the global scope
+            this.filtered = filtered;
             
-            return filtered;
+            return '';
         }
     },
     {
