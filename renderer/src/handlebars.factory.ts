@@ -140,6 +140,60 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       }
     },
   );
+  
+  // Process with blocks
+  const withPattern = /{{#with\s+([^}]+)(?:\s+as\s+\|([^|]+)\|)?}}\s*([\s\S]*?){{\/with}}/g;
+  result = result.replace(withPattern, (match, expression, alias, content) => {
+    try {
+      // Get the value from the expression
+      let value;
+      
+      // Check if the expression is a helper call
+      if (expression.includes(" ")) {
+        const [helperName, ...args] = expression.split(" ").map(part => part.trim());
+        const helper = helperMap.get(helperName);
+        
+        if (helper) {
+          // Resolve args from context
+          const resolvedArgs = args.map(arg => {
+            if (arg.startsWith('"') && arg.endsWith('"')) return arg.slice(1, -1);
+            if (arg.startsWith("'") && arg.endsWith("'")) return arg.slice(1, -1);
+            return getContextValue(arg, context);
+          });
+          
+          value = helper(...resolvedArgs);
+        } else {
+          value = getContextValue(expression, context);
+        }
+      } else {
+        value = getContextValue(expression, context);
+      }
+      
+      if (value === undefined || value === null) {
+        return "";
+      }
+      
+      // Create a new context with the value
+      const withContext = { ...context };
+      
+      if (alias) {
+        // If alias is provided, set the value under that name
+        withContext[alias] = value;
+      } else {
+        // Otherwise, spread properties if it's an object
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          Object.assign(withContext, value);
+        } else {
+          withContext.this = value;
+        }
+      }
+      
+      return processTemplate(content, withContext);
+    } catch (error) {
+      console.error("Error in with block:", error);
+      return "";
+    }
+  });
 
   // Process each blocks
   const eachPattern = /{{#each\s+([^}]+)}}\s*([\s\S]*?){{\/each}}/g;

@@ -7,78 +7,89 @@
   var helpers = [
     {
       name: "unique_years",
-      helper: function(posts, options) {
-        if (!posts || !Array.isArray(posts) || posts.length === 0) {
-          options.data.root.years = [];
-          return "";
+      helper: function(posts) {
+        if (!posts || !Array.isArray(posts)) {
+          return [];
         }
         try {
-          const years = posts.filter((post) => post !== null && post !== void 0 && post.creation_date).map((post) => {
+          const years = [];
+          for (let i = 0; i < posts.length; i++) {
+            const post = posts[i];
+            if (!post || !post.creation_date) continue;
             try {
               const dateStr = post.creation_date;
+              let year = null;
               if (/^\d+$/.test(dateStr)) {
                 const date = new Date(parseInt(dateStr) * 1e3);
-                return date.getFullYear().toString();
+                year = date.getFullYear().toString();
+              } else {
+                const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                if (match) {
+                  year = match[0];
+                } else if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
+                  year = dateStr.substring(0, 4);
+                }
               }
-              const match = dateStr.match(/\b(19|20)\d{2}\b/);
-              if (match) {
-                return match[0];
+              if (year && !years.includes(year)) {
+                years.push(year);
               }
-              if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
-                return dateStr.substring(0, 4);
-              }
-              return null;
             } catch (e) {
               console.error("Error processing post date:", e);
-              return null;
             }
-          }).filter((year) => year !== null);
-          const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
-          options.data.root.years = uniqueYears;
-          return "";
+          }
+          years.sort((a, b) => parseInt(b) - parseInt(a));
+          return years;
         } catch (error) {
           console.error("Error in unique_years helper:", error);
-          options.data.root.years = [];
-          return "";
+          return [];
         }
       }
     },
     {
       name: "filter_by_year",
-      helper: function(year, posts, options) {
+      helper: function(year, posts) {
         if (!posts || !Array.isArray(posts) || !year) {
-          options.data.root.filtered = [];
-          return "";
+          return [];
         }
         try {
-          const filtered = posts.filter((post) => {
-            if (!post || !post.creation_date) return false;
+          const filtered = [];
+          for (let i = 0; i < posts.length; i++) {
+            const post = posts[i];
+            if (!post || !post.creation_date) continue;
             try {
               const dateStr = post.creation_date;
+              let matches = false;
               if (/^\d+$/.test(dateStr)) {
                 const date = new Date(parseInt(dateStr) * 1e3);
-                return date.getFullYear().toString() === year;
+                if (date.getFullYear().toString() === year) {
+                  matches = true;
+                }
+              } else {
+                const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                if (match && match[0] === year) {
+                  matches = true;
+                } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
+                  matches = true;
+                }
               }
-              const match = dateStr.match(/\b(19|20)\d{2}\b/);
-              if (match && match[0] === year) {
-                return true;
+              if (matches) {
+                filtered.push(post);
               }
-              if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
-                return true;
-              }
-              return false;
             } catch (e) {
               console.error("Error processing post in filter_by_year:", e);
-              return false;
             }
-          });
-          options.data.root.filtered = filtered;
-          return "";
+          }
+          return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
-          options.data.root.filtered = [];
-          return "";
+          return [];
         }
+      }
+    },
+    {
+      name: "get_filtered_posts",
+      helper: function(year) {
+        return filteredPostsCache[year] || [];
       }
     },
     {
@@ -659,6 +670,45 @@
         }
       }
     );
+    const withPattern = /{{#with\s+([^}]+)(?:\s+as\s+\|([^|]+)\|)?}}\s*([\s\S]*?){{\/with}}/g;
+    result = result.replace(withPattern, (match, expression, alias, content) => {
+      try {
+        let value;
+        if (expression.includes(" ")) {
+          const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
+          const helper = helperMap.get(helperName);
+          if (helper) {
+            const resolvedArgs = args.map((arg) => {
+              if (arg.startsWith('"') && arg.endsWith('"')) return arg.slice(1, -1);
+              if (arg.startsWith("'") && arg.endsWith("'")) return arg.slice(1, -1);
+              return getContextValue(arg, context);
+            });
+            value = helper(...resolvedArgs);
+          } else {
+            value = getContextValue(expression, context);
+          }
+        } else {
+          value = getContextValue(expression, context);
+        }
+        if (value === void 0 || value === null) {
+          return "";
+        }
+        const withContext = { ...context };
+        if (alias) {
+          withContext[alias] = value;
+        } else {
+          if (typeof value === "object" && !Array.isArray(value)) {
+            Object.assign(withContext, value);
+          } else {
+            withContext.this = value;
+          }
+        }
+        return processTemplate(content, withContext);
+      } catch (error) {
+        console.error("Error in with block:", error);
+        return "";
+      }
+    });
     const eachPattern = /{{#each\s+([^}]+)}}\s*([\s\S]*?){{\/each}}/g;
     result = result.replace(eachPattern, (match, arrayPath, content) => {
       const array = getContextValue(arrayPath.trim(), context);

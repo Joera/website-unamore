@@ -102,6 +102,12 @@ export const helpers =  [
         }
     },
     {
+        name: "get_filtered_posts",
+        helper: function(year: string) {
+            return filteredPostsCache[year] || [];
+        }
+    },
+    {
         name: "extract_images",
         helper: (input: string) => {
 
