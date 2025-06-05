@@ -24,10 +24,10 @@
               <ul>
               {{#each years as |year| }}
                      <li class="year_breaker">{{year}}</li>
-                     {{!-- {{ filter_by_year year ../collections.posts }}
+                     {{ filter_by_year year ../collections.posts }}
                      {{#each ../filtered as |post|}}
                             <li><a href="./{{slugify post.title}}">{{post.title}}</a></li>
-                     {{/each}} --}}
+                     {{/each}}
               {{/each}}
               </ul>
        </section>

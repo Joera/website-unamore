@@ -1,5 +1,74 @@
 export const helpers =  [
     {
+        name: "unique_years",
+        helper: function(posts: any[], options: any) {
+            if (!posts || !Array.isArray(posts) || posts.length === 0) {
+                return [];
+            }
+
+            // Extract years from creation_date fields
+            const years = posts
+                .filter(post => post.creation_date)
+                .map(post => {
+                    // Assuming creation_date is in ISO format or contains year
+                    const dateStr = post.creation_date;
+                    // Extract year (first 4 characters if it starts with a year, or use regex)
+                    const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                    if (match) {
+                        return match[0];
+                    }
+                    // If it's ISO format like 2023-01-01T...
+                    if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
+                        return dateStr.substring(0, 4);
+                    }
+                    return null;
+                })
+                .filter(year => year !== null);
+
+            // Get unique years and sort in descending order
+            const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
+            
+            // Set years as a global variable for the template
+            if (options && options.data) {
+                options.data.root.years = uniqueYears;
+            }
+            
+            return uniqueYears;
+        }
+    },
+    {
+        name: "filter_by_year",
+        helper: function(year: string, posts: any[], options: any) {
+            if (!posts || !Array.isArray(posts) || !year) {
+                return [];
+            }
+
+            // Filter posts by the given year
+            const filtered = posts.filter(post => {
+                if (!post.creation_date) return false;
+                
+                const dateStr = post.creation_date;
+                // Extract year using regex
+                const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                if (match && match[0] === year) {
+                    return true;
+                }
+                // If it's ISO format like 2023-01-01T...
+                if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
+                    return true;
+                }
+                return false;
+            });
+
+            // Set filtered posts as a global variable for the template
+            if (options && options.data) {
+                options.data.root.filtered = filtered;
+            }
+            
+            return filtered;
+        }
+    },
+    {
         name: "extract_images",
         helper: (input: string) => {
 
