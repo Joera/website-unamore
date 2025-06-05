@@ -8,31 +8,29 @@
 <aside>
        {{> nav }}
 </aside>
- 
- 
+
+
 <main>
        <section class="small-container">
               <article>
                      <h1>{{title}}</h1>
                      <div>{{{content}}}</div>
               </article>
-       </section>   
+       </section>
 
        <section id="archief" class="small-container">
-              {{#each posts}}
-                     {{this.title}}
-              {{/each}}
-              {{ unique_years posts  }}
+
+                {{ unique_years posts  }}
               <ul>
               {{#each years as |year| }}
                      <li class="year_breaker">{{year}}</li>
                      {{!-- {{ filter_by_year year ../collections.posts }}
                      {{#each ../filtered as |post|}}
-                            <li><a href="./{{slugify post.title}}">{{post.title}}</a></li> 
+                            <li><a href="./{{slugify post.title}}">{{post.title}}</a></li>
                      {{/each}} --}}
-              {{/each}} 
+              {{/each}}
               </ul>
-       </section>   
+       </section>
 
        {{> tabs }}
 
@@ -41,4 +39,3 @@
        {{> footer}}
 </body>
 </html>
-
