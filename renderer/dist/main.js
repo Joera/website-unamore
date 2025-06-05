@@ -7,11 +7,11 @@
   var helpers = [
     {
       name: "unique_years",
-      helper: function(posts, options) {
+      helper: function(posts) {
         if (!posts || !Array.isArray(posts) || posts.length === 0) {
           return [];
         }
-        const years = posts.filter((post) => post.creation_date).map((post) => {
+        const years = posts.filter((post) => post && post.creation_date).map((post) => {
           const dateStr = post.creation_date;
           const match = dateStr.match(/\b(19|20)\d{2}\b/);
           if (match) {
@@ -23,20 +23,18 @@
           return null;
         }).filter((year) => year !== null);
         const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
-        if (options && options.data) {
-          options.data.root.years = uniqueYears;
-        }
-        return uniqueYears;
+        this.years = uniqueYears;
+        return "";
       }
     },
     {
       name: "filter_by_year",
-      helper: function(year, posts, options) {
+      helper: function(year, posts) {
         if (!posts || !Array.isArray(posts) || !year) {
           return [];
         }
         const filtered = posts.filter((post) => {
-          if (!post.creation_date) return false;
+          if (!post || !post.creation_date) return false;
           const dateStr = post.creation_date;
           const match = dateStr.match(/\b(19|20)\d{2}\b/);
           if (match && match[0] === year) {
@@ -47,10 +45,8 @@
           }
           return false;
         });
-        if (options && options.data) {
-          options.data.root.filtered = filtered;
-        }
-        return filtered;
+        this.filtered = filtered;
+        return "";
       }
     },
     {

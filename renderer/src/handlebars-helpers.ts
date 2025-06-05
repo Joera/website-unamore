@@ -3,65 +3,101 @@ export const helpers =  [
         name: "unique_years",
         helper: function(posts: any[]) {
             if (!posts || !Array.isArray(posts) || posts.length === 0) {
-                return [];
+                return '';
             }
 
-            // Extract years from creation_date fields
-            const years = posts
-                .filter(post => post && post.creation_date)
-                .map(post => {
-                    // Assuming creation_date is in ISO format or contains year
-                    const dateStr = post.creation_date;
-                    // Extract year (first 4 characters if it starts with a year, or use regex)
-                    const match = dateStr.match(/\b(19|20)\d{2}\b/);
-                    if (match) {
-                        return match[0];
-                    }
-                    // If it's ISO format like 2023-01-01T...
-                    if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
-                        return dateStr.substring(0, 4);
-                    }
-                    return null;
-                })
-                .filter(year => year !== null);
+            try {
+                // Extract years from creation_date fields
+                const years = posts
+                    .filter(post => post !== null && post !== undefined && post.creation_date)
+                    .map(post => {
+                        try {
+                            // Try to handle Unix timestamp
+                            const dateStr = post.creation_date;
+                            if (/^\d+$/.test(dateStr)) {
+                                // It's a Unix timestamp - convert to year
+                                const date = new Date(parseInt(dateStr) * 1000);
+                                return date.getFullYear().toString();
+                            }
+                            
+                            // Extract year (first 4 characters if it starts with a year, or use regex)
+                            const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                            if (match) {
+                                return match[0];
+                            }
+                            // If it's ISO format like 2023-01-01T...
+                            if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
+                                return dateStr.substring(0, 4);
+                            }
+                            return null;
+                        } catch (e) {
+                            console.error("Error processing post date:", e);
+                            return null;
+                        }
+                    })
+                    .filter(year => year !== null);
 
-            // Get unique years and sort in descending order
-            const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
-            
-            // Set years directly in the global scope
-            this.years = uniqueYears;
-            
-            return '';
+                // Get unique years and sort in descending order
+                const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
+                
+                // Set years in the global context
+                this.years = uniqueYears;
+                
+                return '';
+            } catch (error) {
+                console.error("Error in unique_years helper:", error);
+                this.years = [];
+                return '';
+            }
         }
     },
     {
         name: "filter_by_year",
         helper: function(year: string, posts: any[]) {
             if (!posts || !Array.isArray(posts) || !year) {
-                return [];
+                this.filtered = [];
+                return '';
             }
 
-            // Filter posts by the given year
-            const filtered = posts.filter(post => {
-                if (!post || !post.creation_date) return false;
-                
-                const dateStr = post.creation_date;
-                // Extract year using regex
-                const match = dateStr.match(/\b(19|20)\d{2}\b/);
-                if (match && match[0] === year) {
-                    return true;
-                }
-                // If it's ISO format like 2023-01-01T...
-                if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
-                    return true;
-                }
-                return false;
-            });
+            try {
+                // Filter posts by the given year
+                const filtered = posts.filter(post => {
+                    if (!post || !post.creation_date) return false;
+                    
+                    try {
+                        const dateStr = post.creation_date;
+                        
+                        // Check if it's a Unix timestamp
+                        if (/^\d+$/.test(dateStr)) {
+                            const date = new Date(parseInt(dateStr) * 1000);
+                            return date.getFullYear().toString() === year;
+                        }
+                        
+                        // Extract year using regex
+                        const match = dateStr.match(/\b(19|20)\d{2}\b/);
+                        if (match && match[0] === year) {
+                            return true;
+                        }
+                        // If it's ISO format like 2023-01-01T...
+                        if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
+                            return true;
+                        }
+                        return false;
+                    } catch (e) {
+                        console.error("Error processing post in filter_by_year:", e);
+                        return false;
+                    }
+                });
 
-            // Set filtered posts directly in the global scope
-            this.filtered = filtered;
-            
-            return '';
+                // Set filtered posts directly in the global scope
+                this.filtered = filtered;
+                
+                return '';
+            } catch (error) {
+                console.error("Error in filter_by_year helper:", error);
+                this.filtered = [];
+                return '';
+            }
         }
     },
     {

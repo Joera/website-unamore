@@ -22,13 +22,17 @@
 
                 {{unique_years posts}}
               <ul>
-              {{#each years}}
+              {{#if years.length}}
+                {{#each years}}
                      <li class="year_breaker">{{this}}</li>
                      {{filter_by_year this ../posts}}
                      {{#each ../filtered}}
                             <li><a href="./{{slugify title}}">{{title}}</a></li>
                      {{/each}}
-              {{/each}}
+                {{/each}}
+              {{else}}
+                <li>Geen berichten gevonden</li>
+              {{/if}}
               </ul>
        </section>
 
