@@ -100,12 +100,6 @@ const main = async () => {
       });
     },
   });
-
-  // console.log(1);../renderAction/main.js
-  // console.log(MAIN_ACTION_HASH);
-  // console.log(sessionSignatures);
-
-  console.log(protocolInfo);
   try {
     const action: any = await litNodeClient.executeJs({
       sessionSigs: sessionSignatures,
@@ -132,4 +126,13 @@ const main = async () => {
   }
 };
 
-main();
+main()
+  .then(() => {
+    console.log("Action executed successfully");
+  })
+  .catch((error) => {
+    console.error("Error executing action:", error);
+  })
+  .finally(() => {
+    process.exit(0);
+  });

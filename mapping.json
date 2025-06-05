@@ -35,7 +35,7 @@
         {
           "slug": "body",
           "source": "orbisdb",
-          "key": "posts",
+          "key": "body",
           "value": "post",
           "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
         },
