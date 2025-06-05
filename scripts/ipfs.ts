@@ -1,200 +1,223 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as tar from 'tar';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
-import { ReadableStream } from 'stream/web';
-import * as os from 'os';
-import * as crypto from 'crypto';
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as tar from "tar";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
+import { ReadableStream } from "stream/web";
+import * as os from "os";
+import * as crypto from "crypto";
 
 interface DagNode {
-    [key: string]: string | DagNode;
+  [key: string]: string | DagNode;
 }
 
 interface IpfsLink {
-    Hash: {
-        '/': string;
-    };
-    Name: string;
-    Tsize: number;
+  Hash: {
+    "/": string;
+  };
+  Name: string;
+  Tsize: number;
 }
 
 interface IpfsDataField {
-    '/': {
-        bytes: string;
-    };
+  "/": {
+    bytes: string;
+  };
 }
 
 interface IpfsCidReference {
-    '/': string;
+  "/": string;
 }
 
 interface IpfsDirectory {
-    [key: string]: IpfsCidReference;
+  [key: string]: IpfsCidReference;
 }
 
-type IpfsDagNodeValue = IpfsDataField | IpfsCidReference | IpfsLink[] | IpfsDirectory | { '/': string };
+type IpfsDagNodeValue =
+  | IpfsDataField
+  | IpfsCidReference
+  | IpfsLink[]
+  | IpfsDirectory
+  | { "/": string };
 
 interface IpfsDagNode {
-    Data?: IpfsDataField;
-    Links?: IpfsLink[];
-    [key: string]: IpfsDagNodeValue | undefined;
+  Data?: IpfsDataField;
+  Links?: IpfsLink[];
+  [key: string]: IpfsDagNodeValue | undefined;
 }
 
 function isIpfsDataField(value: any): value is IpfsDataField {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        '/' in value &&
-        typeof value['/'] === 'object' &&
-        value['/'] !== null &&
-        'bytes' in value['/']
-    );
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "/" in value &&
+    typeof value["/"] === "object" &&
+    value["/"] !== null &&
+    "bytes" in value["/"]
+  );
 }
 
 function isIpfsCidReference(value: any): value is IpfsCidReference {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        '/' in value &&
-        typeof value['/'] === 'string'
-    );
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "/" in value &&
+    typeof value["/"] === "string"
+  );
 }
 
 function isIpfsDirectory(value: any): value is IpfsDirectory {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        !('/' in value) &&
-        Object.values(value).every(isIpfsCidReference)
-    );
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !("/" in value) &&
+    Object.values(value).every(isIpfsCidReference)
+  );
 }
 
 const getDagNode = async (cid: string): Promise<IpfsDagNode> => {
-    // console.log(`Fetching DAG node for CID: ${cid}`);
-    const response = await fetch(`${process.env.IPFS_URL}/api/v0/dag/get?arg=${cid}`, {
-        method: 'POST'
-    });
+  // console.log(`Fetching DAG node for CID: ${cid}`);
+  const response = await fetch(
+    `${process.env.IPFS_URL}/api/v0/dag/get?arg=${cid}`,
+    {
+      method: "POST",
+    },
+  );
 
-    if (!response.ok) {
-        throw new Error(`IPFS dag/get failed: ${response.status} ${response.statusText}`);
-    }
+  if (!response.ok) {
+    throw new Error(
+      `IPFS dag/get failed: ${response.status} ${response.statusText}`,
+    );
+  }
 
-    const data = await response.json();
-    // console.log('DAG response:', JSON.stringify(data, null, 2));
-    return data;
-}
+  const data = await response.json();
+  // console.log('DAG response:', JSON.stringify(data, null, 2));
+  return data;
+};
 
-const downloadRecursive = async (cid: string, basePath: string, relativePath: string) => {
-    // console.log(`\nProcessing node: ${path.join(basePath, relativePath)}`);
-    
-    try {
-        // Try to get the DAG node
-        const node = await getDagNode(cid);
-        // console.log(node);
-      
-        // Check if this is a file node (has Data field)
-        const isFile = node.Data && isIpfsDataField(node.Data);
-        const currentPath = path.join(basePath, relativePath);
+const downloadRecursive = async (
+  cid: string,
+  basePath: string,
+  relativePath: string,
+) => {
+  // console.log(`\nProcessing node: ${path.join(basePath, relativePath)}`);
 
-        // console.log(node.Data);
-        
-        if (isFile) {
-            // This is a file node, download its contents
+  try {
+    // Try to get the DAG node
+    const node = await getDagNode(cid);
+    // console.log(node);
 
-            const fileName = 'index.html'
-            
-            const main: any = node[fileName];
+    // Check if this is a file node (has Data field)
+    const isFile = node.Data && isIpfsDataField(node.Data);
+    const currentPath = path.join(basePath, relativePath);
 
-            if (main){
-               
-                let mainCid = main['/'];
+    // console.log(node.Data);
 
-                const response = await fetch(`${process.env.IPFS_URL}/api/v0/cat?arg=${mainCid}`, {
-                    method: 'POST'
-                });
-                if (!response.ok) {
-                    throw new Error(`Failed to download file: ${response.statusText}`);
-                }
-                // Ensure parent directory exists
-                await fs.mkdir(path.dirname(currentPath), { recursive: true });
+    if (isFile) {
+      // This is a file node, download its contents
 
-                const buffer = Buffer.from(await response.arrayBuffer());
-                const filePath = currentPath + '/' + fileName;
-                await fs.writeFile(filePath, buffer);
-                console.log(`Successfully wrote file to ${filePath}`);
-            }
+      const fileName = "index.html";
 
-            else if (node.Data) {
-                const dirPath = path.join(basePath, relativePath);
-                await fs.mkdir(path.dirname(dirPath), { recursive: true });
+      const main: any = node[fileName];
 
-                // Write the file contents
-                const buffer = Buffer.from(node.Data['/'].bytes, 'base64');
-                const text = buffer.toString('utf8');
+      if (main) {
+        let mainCid = main["/"];
 
-            
-                // Clean the text by removing any invalid characters and stray letters at start/end
-                const cleanText = text
-                    .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]/g, '') // remove control chars and replacement character
-                    .replace(/^[\uFFFD\s]*[a-zA-Z0-9]?|[a-zA-Z]?[\uFFFD\s]*$/g, ''); // clean start/end including single letters
-
-                // If it starts with <!DOCTYPE html> or <html>, it's HTML content
-                if (cleanText.toLowerCase().includes('<!doctype html>') || cleanText.toLowerCase().includes('<html')) {
-                    // console.log(`Processing HTML at ${dirPath}`);
-                    
-                    // Determine the file path - if it already ends with index.html, use it as is
-                    const filePath = dirPath.endsWith('index.html') ? dirPath : path.join(dirPath, 'index.html');
-                    
-                    try {
-                        // Ensure the directory exists
-                        await fs.mkdir(path.dirname(filePath), { recursive: true });
-                        await fs.writeFile(filePath, cleanText, 'utf8');
-                        console.log(`Successfully wrote HTML to ${filePath}`);
-                    } catch (error) {
-                        console.error(`Failed to write file ${filePath}:`, error);
-                        throw error;
-                    }
-                } else {
-                    console.log(`Content is not HTML, starts with: ${text.substring(0, 20)}`);
-                    console.log(`Skipping non-HTML content at ${dirPath}`);
-                }
-            }
-
-            if (node.Links && Array.isArray(node.Links)) {
-                for (const link of node.Links) {
-                 //   console.log(link);
-                    if (link.Hash && link.Name) {
-                      //  console.log(`Processing link: ${link.Name} (${link.Hash['/']}) to ${path.join(currentPath, link.Name)}`);
-                        await downloadRecursive(link.Hash['/'], basePath, path.join(relativePath, link.Name));
-                    }
-                }
-            }
+        const response = await fetch(
+          `${process.env.IPFS_URL}/api/v0/cat?arg=${mainCid}`,
+          {
+            method: "POST",
+          },
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to download file: ${response.statusText}`);
         }
-    } catch (err) {
-        // const error = err as Error;
-        console.log(`Failed to process complete DAG node `);
-        // throw e. deployrror;c
+        // Ensure parent directory exists
+        await fs.mkdir(path.dirname(currentPath), { recursive: true });
+
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const filePath = currentPath + "/" + fileName;
+        await fs.writeFile(filePath, buffer);
+        //     console.log(`Successfully wrote file to ${filePath}`);
+      } else if (node.Data) {
+        const dirPath = path.join(basePath, relativePath);
+        await fs.mkdir(path.dirname(dirPath), { recursive: true });
+
+        // Write the file contents
+        const buffer = Buffer.from(node.Data["/"].bytes, "base64");
+        const text = buffer.toString("utf8");
+
+        // Clean the text by removing any invalid characters and stray letters at start/end
+        const cleanText = text
+          .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]/g, "") // remove control chars and replacement character
+          .replace(/^[\uFFFD\s]*[a-zA-Z0-9]?|[a-zA-Z]?[\uFFFD\s]*$/g, ""); // clean start/end including single letters
+
+        // If it starts with <!DOCTYPE html> or <html>, it's HTML content
+        if (
+          cleanText.toLowerCase().includes("<!doctype html>") ||
+          cleanText.toLowerCase().includes("<html")
+        ) {
+          // console.log(`Processing HTML at ${dirPath}`);
+
+          // Determine the file path - if it already ends with index.html, use it as is
+          const filePath = dirPath.endsWith("index.html")
+            ? dirPath
+            : path.join(dirPath, "index.html");
+
+          try {
+            // Ensure the directory exists
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
+            await fs.writeFile(filePath, cleanText, "utf8");
+            console.log(`Successfully wrote HTML to ${filePath}`);
+          } catch (error) {
+            console.error(`Failed to write file ${filePath}:`, error);
+            throw error;
+          }
+        } else {
+          console.log(
+            `Content is not HTML, starts with: ${text.substring(0, 20)}`,
+          );
+          console.log(`Skipping non-HTML content at ${dirPath}`);
+        }
+      }
+
+      if (node.Links && Array.isArray(node.Links)) {
+        for (const link of node.Links) {
+          //   console.log(link);
+          if (link.Hash && link.Name) {
+            //  console.log(`Processing link: ${link.Name} (${link.Hash['/']}) to ${path.join(currentPath, link.Name)}`);
+            await downloadRecursive(
+              link.Hash["/"],
+              basePath,
+              path.join(relativePath, link.Name),
+            );
+          }
+        }
+      }
     }
-}
+  } catch (err) {
+    // const error = err as Error;
+    console.log(`Failed to process complete DAG node `);
+    // throw e. deployrror;c
+  }
+};
 
 export const downloadHTML = async (cid: string, outputPath: string) => {
-    console.log(`Starting download from IPFS CID: ${cid} to ${outputPath}`);
-    
-    try {
-        // Create output directory if it doesn't exist
-        await fs.mkdir(outputPath, { recursive: true });
-        
-        // Download and process the DAG directly to the target directory
-        await downloadRecursive(cid, outputPath, '');
-        
-    } catch (error) {
-        console.error('Failed to download from IPFS:', error);
-        throw error;
-    }
-    
-    // console.log(`Completed download from IPFS CID: ${cid}`);
-}
+  //  console.log(`Starting download from IPFS CID: ${cid} to ${outputPath}`);
+
+  try {
+    // Create output directory if it doesn't exist
+    await fs.mkdir(outputPath, { recursive: true });
+
+    // Download and process the DAG directly to the target directory
+    await downloadRecursive(cid, outputPath, "");
+  } catch (error) {
+    console.error("Failed to download from IPFS:", error);
+    throw error;
+  }
+
+  // console.log(`Completed download from IPFS CID: ${cid}`);
+};
 
 // export const downloadAsTar = async (cid: string, outputPath: string) => {
 //     console.log(`Starting download from IPFS CID: ${cid} to ${outputPath}`);
@@ -208,23 +231,23 @@ export const downloadHTML = async (cid: string, outputPath: string) => {
 //         const response  = await fetch(`${process.env.IPFS_URL}/api/v0/get?arg=${cid}&archive=true&compress=false`, {
 //             method: 'POST'
 //         });
-        
+
 //         if (!response.ok) {
 //             throw new Error(`IPFS cat failed: ${response.status} ${response.statusText}`);
 //         }
-        
-//         if (!response.body) {   
+
+//         if (!response.body) {
 //             throw new Error('No response body received from IPFS');
 //         }
 
 //         // Create readable stream from response
 //         const readable = Readable.fromWeb(response.body as ReadableStream);
-        
+
 //         // Create a temporary directory for extraction
 //         const tempDir = path.join(os.tmpdir(), `neutralpress-${crypto.randomUUID()}`);
 //         await fs.mkdir(tempDir, { recursive: true });
 
-//         console.log(outputPath, tempDir)   
+//         console.log(outputPath, tempDir)
 
 //         try {
 //             // Extract tar to temporary directory
@@ -249,14 +272,14 @@ export const downloadHTML = async (cid: string, outputPath: string) => {
 //             for (const file of files) {
 //                 const sourcePath = path.join(tempDir, file);
 //                 const targetPath = path.join(outputPath, file);
-                
+
 //                 // Remove target if it exists
 //                 try {
 //                    // await fs.rm(targetPath, { recursive: true, force: true });
 //                 } catch (err) {
 //                     // Ignore errors if file doesn't exist
 //                 }
-                
+
 //                 // Copy files instead of rename to handle cross-device operations
 //                 await fs.cp(sourcePath, targetPath, { recursive: true, force: true });
 //             }
@@ -271,10 +294,10 @@ export const downloadHTML = async (cid: string, outputPath: string) => {
 //             }
 //         }
 //     } catch (error) {
-        
+
 //         console.error('Failed to download and extract assets:', error);
 //         throw error;
 //     }
-    
+
 //     console.log(`Completed download from IPFS CID: ${cid}`);
 // }

@@ -37,7 +37,7 @@
           "source": "orbisdb",
           "key": "posts",
           "value": "post",
-          "query": "SELECT * from {table} WHERE post_type = 'post' ORDER BY creation_date DESC"
+          "query": "SELECT * from {{table}} WHERE publications = '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC"
         }
       ]
     },
@@ -63,7 +63,7 @@
           "source": "tableland",
           "key": "paintings",
           "value": "args",
-          "query": "SELECT * from {table} WHERE post_type = 'painting' AND tags LIKE '%{value}%' ORDER BY parent ASC"
+          "query": "SELECT * from {{table}} WHERE post_type = 'painting' AND tags LIKE '%{value}%' ORDER BY parent ASC"
         }
       ]
     },
@@ -93,7 +93,7 @@
       "origins": ["painting"],
       "destination": "serie_v1",
       "reference": "tag",
-      "query": "SELECT * from {table} WHERE post_type = 'serie_v1' AND title LIKE '%{value}%' ORDER BY creation_date ASC;"
+      "query": "SELECT * from {{table}} WHERE post_type = 'serie_v1' AND title LIKE '%{value}%' ORDER BY creation_date ASC;"
     }
   ]
 }
