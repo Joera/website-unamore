@@ -7,8 +7,9 @@
   var helpers = [
     {
       name: "unique_years",
-      helper: function(posts) {
+      helper: function(posts, options) {
         if (!posts || !Array.isArray(posts) || posts.length === 0) {
+          options.data.root.years = [];
           return "";
         }
         try {
@@ -33,20 +34,20 @@
             }
           }).filter((year) => year !== null);
           const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
-          this.years = uniqueYears;
+          options.data.root.years = uniqueYears;
           return "";
         } catch (error) {
           console.error("Error in unique_years helper:", error);
-          this.years = [];
+          options.data.root.years = [];
           return "";
         }
       }
     },
     {
       name: "filter_by_year",
-      helper: function(year, posts) {
+      helper: function(year, posts, options) {
         if (!posts || !Array.isArray(posts) || !year) {
-          this.filtered = [];
+          options.data.root.filtered = [];
           return "";
         }
         try {
@@ -71,11 +72,11 @@
               return false;
             }
           });
-          this.filtered = filtered;
+          options.data.root.filtered = filtered;
           return "";
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
-          this.filtered = [];
+          options.data.root.filtered = [];
           return "";
         }
       }

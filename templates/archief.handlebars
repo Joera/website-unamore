@@ -20,19 +20,19 @@
 
        <section id="archief" class="small-container">
 
-                {{unique_years posts}}
               <ul>
-              {{#if years.length}}
-                {{#each years}}
+              {{#with (unique_years posts) as |years|}}
+                {{#if years.length}}
+                  {{#each years}}
                      <li class="year_breaker">{{this}}</li>
-                     {{filter_by_year this ../posts}}
-                     {{#each ../filtered}}
+                     {{#each (filter_by_year this ../../posts)}}
                             <li><a href="./{{slugify title}}">{{title}}</a></li>
                      {{/each}}
-                {{/each}}
-              {{else}}
-                <li>Geen berichten gevonden</li>
-              {{/if}}
+                  {{/each}}
+                {{else}}
+                  <li>Geen berichten gevonden</li>
+                {{/if}}
+              {{/with}}
               </ul>
        </section>
 
