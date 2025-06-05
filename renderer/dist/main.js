@@ -693,27 +693,46 @@
   var renderHTML = async (config2, templateConfig2, templateData2) => {
     try {
       if (!config2?.template_cid || !templateConfig2?.file) {
-        console.error("Missing required config:", { template_cid: config2?.template_cid, file: templateConfig2?.file });
+        console.error("Missing required config:", {
+          template_cid: config2?.template_cid,
+          file: templateConfig2?.file
+        });
         return "";
       }
-      const response = await fetch(`${IPFS_URL}/api/v0/dag/get?arg=${config2.template_cid}`, {
-        method: "POST"
-      });
+      const response = await fetch(
+        `${IPFS_URL}/api/v0/dag/get?arg=${config2.template_cid}`,
+        {
+          method: "POST"
+        }
+      );
       if (!response.ok) {
-        console.error("Template fetch failed:", response.status, response.statusText);
+        console.error(
+          "Template fetch failed:",
+          response.status,
+          response.statusText
+        );
         return "";
       }
       const templateArray = await response.json();
-      const templateFile = templateArray.find((t) => t.path.includes(templateConfig2.file));
+      const templateFile = templateArray.find(
+        (t) => t.path.includes(templateConfig2.file)
+      );
       if (!templateFile?.cid) {
         console.error("Template file not found:", templateConfig2.file);
         return "";
       }
-      const templateResponse = await fetch(`${IPFS_URL}/api/v0/cat?arg=${templateFile.cid}`, {
-        method: "POST"
-      });
+      const templateResponse = await fetch(
+        `${IPFS_URL}/api/v0/cat?arg=${templateFile.cid}`,
+        {
+          method: "POST"
+        }
+      );
       if (!templateResponse.ok) {
-        console.error("Template content fetch failed:", templateResponse.status, templateResponse.statusText);
+        console.error(
+          "Template content fetch failed:",
+          templateResponse.status,
+          templateResponse.statusText
+        );
         return "";
       }
       const template = cleanTemplateString(await templateResponse.text()).replace(/^"/, "").replace(/"$/, "").replace(/(?<=>)"/g, "").replace(/"(?=<)/g, "");
@@ -721,7 +740,10 @@
         console.error("Empty template after cleaning");
         return "";
       }
-      const partialFiles = templateArray.filter((t) => t.path.includes("partials/"));
+      console.log(templateData2);
+      const partialFiles = templateArray.filter(
+        (t) => t.path.includes("partials/")
+      );
       const result = await processPartials(template, partialFiles, templateData2);
       if (!result) {
         console.error("Empty result after processing");

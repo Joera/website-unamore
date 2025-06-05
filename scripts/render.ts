@@ -12,10 +12,10 @@ import {
 import { uploadToPinata } from "./pinata";
 import { clearFolder } from "./fs";
 import { downloadHTML } from "./ipfs";
+import { getProtocolInfo } from "./protocol";
 
-const MAIN_ACTION_HASH = "Qmdi5ZsK3YVVVDnJiyTKANBAt6kx7TjoKD9rxPDdKCgScx";
 const STREAM_ID =
-  "kjzl6kcym7w8y7mamk4c4xdbnn4y963xih6fbe1blmw1ac20ac4rtbakp24psou";
+  "kjzl6kcym7w8y7slsym5p350cdssm7lh6md08knrp5be6kqlqkryh5sy5zptstl";
 const publication = "unamore.--web.eth";
 const safeAddress = "0xd065d8C47994cAC57e49785aCEE04FcA495afac4";
 
@@ -23,9 +23,9 @@ const epk = process.env.PRIVATE_KEY_UNAMORE || process.env.PRIVATE_KEY || "";
 const SELECTED_LIT_NETWORK = LIT_NETWORK.Datil;
 
 const main = async () => {
-  let render_action = await uploadToPinata("./renderer/dist/main.js");
+  const protocolInfo: any = await getProtocolInfo();
 
-  console.log("render CID:", render_action.IpfsHash);
+  let render_action = await uploadToPinata("./renderer/dist/main.js");
 
   const litNodeClient = new LitNodeClient({
     litNetwork: SELECTED_LIT_NETWORK,
@@ -105,12 +105,11 @@ const main = async () => {
   // console.log(MAIN_ACTION_HASH);
   // console.log(sessionSignatures);
 
-  console.log(render_action.IpfsHash);
-
+  console.log(protocolInfo);
   try {
     const action: any = await litNodeClient.executeJs({
       sessionSigs: sessionSignatures,
-      ipfsId: MAIN_ACTION_HASH,
+      ipfsId: protocolInfo.lit_action_main,
       jsParams: {
         safeAddress,
         publication,
