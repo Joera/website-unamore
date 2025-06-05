@@ -9,44 +9,75 @@
       name: "unique_years",
       helper: function(posts) {
         if (!posts || !Array.isArray(posts) || posts.length === 0) {
-          return [];
+          return "";
         }
-        const years = posts.filter((post) => post && post.creation_date).map((post) => {
-          const dateStr = post.creation_date;
-          const match = dateStr.match(/\b(19|20)\d{2}\b/);
-          if (match) {
-            return match[0];
-          }
-          if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
-            return dateStr.substring(0, 4);
-          }
-          return null;
-        }).filter((year) => year !== null);
-        const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
-        this.years = uniqueYears;
-        return "";
+        try {
+          const years = posts.filter((post) => post !== null && post !== void 0 && post.creation_date).map((post) => {
+            try {
+              const dateStr = post.creation_date;
+              if (/^\d+$/.test(dateStr)) {
+                const date = new Date(parseInt(dateStr) * 1e3);
+                return date.getFullYear().toString();
+              }
+              const match = dateStr.match(/\b(19|20)\d{2}\b/);
+              if (match) {
+                return match[0];
+              }
+              if (dateStr.length >= 4 && /^\d{4}/.test(dateStr)) {
+                return dateStr.substring(0, 4);
+              }
+              return null;
+            } catch (e) {
+              console.error("Error processing post date:", e);
+              return null;
+            }
+          }).filter((year) => year !== null);
+          const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
+          this.years = uniqueYears;
+          return "";
+        } catch (error) {
+          console.error("Error in unique_years helper:", error);
+          this.years = [];
+          return "";
+        }
       }
     },
     {
       name: "filter_by_year",
       helper: function(year, posts) {
         if (!posts || !Array.isArray(posts) || !year) {
-          return [];
+          this.filtered = [];
+          return "";
         }
-        const filtered = posts.filter((post) => {
-          if (!post || !post.creation_date) return false;
-          const dateStr = post.creation_date;
-          const match = dateStr.match(/\b(19|20)\d{2}\b/);
-          if (match && match[0] === year) {
-            return true;
-          }
-          if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
-            return true;
-          }
-          return false;
-        });
-        this.filtered = filtered;
-        return "";
+        try {
+          const filtered = posts.filter((post) => {
+            if (!post || !post.creation_date) return false;
+            try {
+              const dateStr = post.creation_date;
+              if (/^\d+$/.test(dateStr)) {
+                const date = new Date(parseInt(dateStr) * 1e3);
+                return date.getFullYear().toString() === year;
+              }
+              const match = dateStr.match(/\b(19|20)\d{2}\b/);
+              if (match && match[0] === year) {
+                return true;
+              }
+              if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
+                return true;
+              }
+              return false;
+            } catch (e) {
+              console.error("Error processing post in filter_by_year:", e);
+              return false;
+            }
+          });
+          this.filtered = filtered;
+          return "";
+        } catch (error) {
+          console.error("Error in filter_by_year helper:", error);
+          this.filtered = [];
+          return "";
+        }
       }
     },
     {

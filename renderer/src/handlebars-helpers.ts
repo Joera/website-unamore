@@ -1,8 +1,9 @@
 export const helpers =  [
     {
         name: "unique_years",
-        helper: function(posts: any[]) {
+        helper: function(posts: any[], options: any) {
             if (!posts || !Array.isArray(posts) || posts.length === 0) {
+                options.data.root.years = [];
                 return '';
             }
 
@@ -40,22 +41,22 @@ export const helpers =  [
                 // Get unique years and sort in descending order
                 const uniqueYears = [...new Set(years)].sort((a, b) => parseInt(b) - parseInt(a));
                 
-                // Set years in the global context
-                this.years = uniqueYears;
+                // Set years in the template data context
+                options.data.root.years = uniqueYears;
                 
                 return '';
             } catch (error) {
                 console.error("Error in unique_years helper:", error);
-                this.years = [];
+                options.data.root.years = [];
                 return '';
             }
         }
     },
     {
         name: "filter_by_year",
-        helper: function(year: string, posts: any[]) {
+        helper: function(year: string, posts: any[], options: any) {
             if (!posts || !Array.isArray(posts) || !year) {
-                this.filtered = [];
+                options.data.root.filtered = [];
                 return '';
             }
 
@@ -89,13 +90,13 @@ export const helpers =  [
                     }
                 });
 
-                // Set filtered posts directly in the global scope
-                this.filtered = filtered;
+                // Set filtered posts in the template data context
+                options.data.root.filtered = filtered;
                 
                 return '';
             } catch (error) {
                 console.error("Error in filter_by_year helper:", error);
-                this.filtered = [];
+                options.data.root.filtered = [];
                 return '';
             }
         }
