@@ -54,7 +54,7 @@ const getContextValue = (path: string, context: TemplateData): any => {
   if (trimmedPath.startsWith("../")) {
     let currentContext = context;
     let remainingPath = trimmedPath;
-    
+
     // Count how many levels up we need to go
     while (remainingPath.startsWith("../")) {
       remainingPath = remainingPath.slice(3); // Remove "../"
@@ -65,7 +65,7 @@ const getContextValue = (path: string, context: TemplateData): any => {
         return undefined;
       }
     }
-    
+
     // Now resolve the remaining path in the parent context
     if (remainingPath === "") {
       return currentContext;
@@ -132,32 +132,39 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
 const processIfBlocks = (text: string, context: TemplateData): string => {
   let result = text;
   let changed = true;
-  
+
   while (changed) {
     changed = false;
     const regex = /{{#if\s+([^}]+)}}/g;
     let match;
-    
+
     while ((match = regex.exec(result)) !== null) {
       const startPos = match.index;
       const condition = match[1].trim();
-      
+
       // Find the matching {{/if}} by counting nested blocks
       let depth = 1;
       let pos = match.index + match[0].length;
       let endPos = -1;
       let elsePos = -1;
-      
+
       while (pos < result.length && depth > 0) {
         const remainingText = result.substring(pos);
         const openMatch = remainingText.match(/{{#if\s/);
         const closeMatch = remainingText.match(/{{\/if}}/);
         const elseMatch = remainingText.match(/{{else}}/);
-        
-        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-        let nextElse = elseMatch && depth === 1 && elsePos === -1 ? pos + remainingText.indexOf(elseMatch[0]) : Infinity;
-        
+
+        let nextOpen = openMatch
+          ? pos + remainingText.indexOf(openMatch[0])
+          : Infinity;
+        let nextClose = closeMatch
+          ? pos + remainingText.indexOf(closeMatch[0])
+          : Infinity;
+        let nextElse =
+          elseMatch && depth === 1 && elsePos === -1
+            ? pos + remainingText.indexOf(elseMatch[0])
+            : Infinity;
+
         if (nextElse < nextOpen && nextElse < nextClose) {
           elsePos = nextElse;
           pos = nextElse + 8; // length of "{{else}}"
@@ -175,17 +182,17 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
           break;
         }
       }
-      
+
       if (endPos !== -1) {
         const contentStart = startPos + match[0].length;
-        const content = elsePos !== -1 
-          ? result.substring(contentStart, elsePos)
-          : result.substring(contentStart, endPos);
-        const elseContent = elsePos !== -1 
-          ? result.substring(elsePos + 8, endPos)
-          : "";
+        const content =
+          elsePos !== -1
+            ? result.substring(contentStart, elsePos)
+            : result.substring(contentStart, endPos);
+        const elseContent =
+          elsePos !== -1 ? result.substring(elsePos + 8, endPos) : "";
         const fullMatch = result.substring(startPos, endPos + 7);
-        
+
         try {
           // Handle eq helper in if blocks
           if (condition.startsWith("(eq ")) {
@@ -207,11 +214,12 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
 
               // Create context with parent reference for nested blocks
               const ifContext = { ...context, parentContext: context };
-              const processedContent = val1 === val2
-                ? processTemplate(content, ifContext)
-                : elseContent
-                  ? processTemplate(elseContent, ifContext)
-                  : "";
+              const processedContent =
+                val1 === val2
+                  ? processTemplate(content, ifContext)
+                  : elseContent
+                    ? processTemplate(elseContent, ifContext)
+                    : "";
               result = result.replace(fullMatch, processedContent);
             }
           } else {
@@ -226,7 +234,7 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
                 : "";
             result = result.replace(fullMatch, processedContent);
           }
-          
+
           changed = true;
           break;
         } catch (error) {
@@ -238,7 +246,7 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
       }
     }
   }
-  
+
   return result;
 };
 
@@ -246,29 +254,35 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
 const processEachBlocks = (text: string, context: TemplateData): string => {
   let result = text;
   let changed = true;
-  
+
   while (changed) {
     changed = false;
-    const regex = /{{#each\s+([^}]+)}}/g;
+    const regex =
+      /{{#each\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
     let match;
-    
+
     while ((match = regex.exec(result)) !== null) {
       const startPos = match.index;
       const arrayPath = match[1].trim();
-      
+      const alias = match[2];
+
       // Find the matching {{/each}} by counting nested blocks
       let depth = 1;
       let pos = match.index + match[0].length;
       let endPos = -1;
-      
+
       while (pos < result.length && depth > 0) {
         const remainingText = result.substring(pos);
         const openMatch = remainingText.match(/{{#each\s/);
         const closeMatch = remainingText.match(/{{\/each}}/);
-        
-        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-        
+
+        let nextOpen = openMatch
+          ? pos + remainingText.indexOf(openMatch[0])
+          : Infinity;
+        let nextClose = closeMatch
+          ? pos + remainingText.indexOf(closeMatch[0])
+          : Infinity;
+
         if (nextClose < nextOpen) {
           depth--;
           if (depth === 0) {
@@ -283,15 +297,18 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
           break;
         }
       }
-      
+
       if (endPos !== -1) {
         const content = result.substring(startPos + match[0].length, endPos);
         const fullMatch = result.substring(startPos, endPos + 9);
-        
+
         try {
           const array = getContextValue(arrayPath, context);
           if (!Array.isArray(array)) {
-            console.error("Each block array not found or not an array:", arrayPath);
+            console.error(
+              "Each block array not found or not an array:",
+              arrayPath,
+            );
             result = result.replace(fullMatch, "");
           } else {
             const processedContent = array
@@ -304,22 +321,34 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   "@last": index === array.length - 1,
                   "@key": arrayPath.split(".").pop() || "",
                   parentContext: context, // Preserve parent context reference
-                  this: item, // Set current item as 'this' (must be last to override)
                 };
-                
-                // Only spread item properties if item is an object (not primitive)
-                if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-                  Object.assign(itemContext, item);
-                  itemContext.this = item; // Ensure this stays as the item
+
+                if (alias) {
+                  // If alias is provided, set the item under that name
+                  itemContext[alias] = item;
+                  // Keep this as the item for backward compatibility
+                  // itemContext.this = item;
+                } else {
+                  // No alias - use original behavior
+                  itemContext.this = item;
+                  // Only spread item properties if item is an object (not primitive)
+                  if (
+                    typeof item === "object" &&
+                    item !== null &&
+                    !Array.isArray(item)
+                  ) {
+                    Object.assign(itemContext, item);
+                    itemContext.this = item; // Ensure this stays as the item
+                  }
                 }
 
                 return processTemplate(content, itemContext);
               })
               .join("");
-            
+
             result = result.replace(fullMatch, processedContent);
           }
-          
+
           changed = true;
           break;
         } catch (error) {
@@ -331,7 +360,7 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
       }
     }
   }
-  
+
   return result;
 };
 
@@ -339,30 +368,35 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
 const processWithBlocks = (text: string, context: TemplateData): string => {
   let result = text;
   let changed = true;
-  
+
   while (changed) {
     changed = false;
-    const regex = /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
+    const regex =
+      /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
     let match;
-    
+
     while ((match = regex.exec(result)) !== null) {
       const startPos = match.index;
       const expression = match[1].trim();
       const alias = match[2];
-      
+
       // Find the matching {{/with}} by counting nested blocks
       let depth = 1;
       let pos = match.index + match[0].length;
       let endPos = -1;
-      
+
       while (pos < result.length && depth > 0) {
         const remainingText = result.substring(pos);
         const openMatch = remainingText.match(/{{#with\s/);
         const closeMatch = remainingText.match(/{{\/with}}/);
-        
-        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-        
+
+        let nextOpen = openMatch
+          ? pos + remainingText.indexOf(openMatch[0])
+          : Infinity;
+        let nextClose = closeMatch
+          ? pos + remainingText.indexOf(closeMatch[0])
+          : Infinity;
+
         if (nextClose < nextOpen) {
           depth--;
           if (depth === 0) {
@@ -377,21 +411,23 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
           break;
         }
       }
-      
+
       if (endPos !== -1) {
         const content = result.substring(startPos + match[0].length, endPos);
         const fullMatch = result.substring(startPos, endPos + 9);
-        
+
         // Process the with block
         try {
           let value;
-          
+
           if (expression.includes(" ")) {
-            const [helperName, ...args] = expression.split(" ").map(part => part.trim());
+            const [helperName, ...args] = expression
+              .split(" ")
+              .map((part) => part.trim());
             const helper = helperMap.get(helperName);
-            
+
             if (helper) {
-              const resolvedArgs = args.map(arg => {
+              const resolvedArgs = args.map((arg) => {
                 if (arg.startsWith('"') && arg.endsWith('"')) {
                   return arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
@@ -400,7 +436,7 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
                   return getContextValue(arg, context);
                 }
               });
-              
+
               value = helper(...resolvedArgs);
             } else {
               value = getContextValue(expression, context);
@@ -408,7 +444,7 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
           } else {
             value = getContextValue(expression, context);
           }
-          
+
           if (value === undefined || value === null) {
             result = result.replace(fullMatch, "");
           } else {
@@ -422,14 +458,14 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
                 withContext.this = value;
               }
             }
-          
+
             // Preserve parent context reference for path traversal
             withContext.parentContext = context;
-            
+
             const processedContent = processTemplate(content, withContext);
             result = result.replace(fullMatch, processedContent);
           }
-          
+
           changed = true;
           break;
         } catch (error) {
@@ -441,7 +477,7 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
       }
     }
   }
-  
+
   return result;
 };
 

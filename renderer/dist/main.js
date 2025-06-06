@@ -749,11 +749,12 @@
     let changed = true;
     while (changed) {
       changed = false;
-      const regex = /{{#each\s+([^}]+)}}/g;
+      const regex = /{{#each\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
       let match;
       while ((match = regex.exec(result)) !== null) {
         const startPos = match.index;
         const arrayPath = match[1].trim();
+        const alias = match[2];
         let depth = 1;
         let pos = match.index + match[0].length;
         let endPos = -1;
@@ -783,7 +784,10 @@
           try {
             const array = getContextValue(arrayPath, context);
             if (!Array.isArray(array)) {
-              console.error("Each block array not found or not an array:", arrayPath);
+              console.error(
+                "Each block array not found or not an array:",
+                arrayPath
+              );
               result = result.replace(fullMatch, "");
             } else {
               const processedContent = array.map((item, index) => {
@@ -794,14 +798,17 @@
                   "@first": index === 0,
                   "@last": index === array.length - 1,
                   "@key": arrayPath.split(".").pop() || "",
-                  parentContext: context,
+                  parentContext: context
                   // Preserve parent context reference
-                  this: item
-                  // Set current item as 'this' (must be last to override)
                 };
-                if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-                  Object.assign(itemContext, item);
+                if (alias) {
+                  itemContext[alias] = item;
+                } else {
                   itemContext.this = item;
+                  if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+                    Object.assign(itemContext, item);
+                    itemContext.this = item;
+                  }
                 }
                 return processTemplate(content, itemContext);
               }).join("");
