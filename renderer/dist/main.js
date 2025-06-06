@@ -614,6 +614,9 @@
   };
   var getContextValue = (path, context) => {
     const trimmedPath = path.trim();
+    console.log(`getContextValue called with path: "${trimmedPath}"`);
+    console.log("Context has keys:", Object.keys(context));
+    console.log("Direct lookup context[path]:", context[trimmedPath]);
     if (trimmedPath === "@root") return context;
     if (trimmedPath === "@first" || trimmedPath === "@last" || trimmedPath === "@index") {
       return context[trimmedPath];
@@ -638,13 +641,19 @@
         return getContextValue(remainingPath, currentContext);
       }
     }
+    if (context.hasOwnProperty(trimmedPath)) {
+      console.log(`Found "${trimmedPath}" directly in context:`, context[trimmedPath]);
+      return context[trimmedPath];
+    }
     if (context.this && typeof context.this === "object") {
       const fromThis = getNestedValue(trimmedPath, context.this);
       if (fromThis !== void 0) {
         return fromThis;
       }
     }
-    return getNestedValue(trimmedPath, context);
+    const result = getNestedValue(trimmedPath, context);
+    console.log(`getNestedValue result for "${trimmedPath}":`, result);
+    return result;
   };
   var processVariables = (text, context) => {
     if (!text.includes("{{")) return text;
@@ -1069,7 +1078,6 @@
         console.error("Empty template after cleaning");
         return "";
       }
-      console.log(templateData2);
       const partialFiles = templateArray.filter(
         (t) => t.path.includes("partials/")
       );

@@ -76,7 +76,7 @@ export const renderHTML = async (
       return "";
     }
 
-    console.log(templateData);
+    // console.log(templateData);
 
     // Find and process partials
     const partialFiles = templateArray.filter((t: any) =>

@@ -35,6 +35,10 @@ const getNestedValue = (path: string, data: TemplateData): any => {
 const getContextValue = (path: string, context: TemplateData): any => {
   const trimmedPath = path.trim();
 
+  console.log(`getContextValue called with path: "${trimmedPath}"`);
+  console.log("Context has keys:", Object.keys(context));
+  console.log("Direct lookup context[path]:", context[trimmedPath]);
+
   // Handle special variables
   if (trimmedPath === "@root") return context;
   if (
@@ -54,7 +58,7 @@ const getContextValue = (path: string, context: TemplateData): any => {
   if (trimmedPath.startsWith("../")) {
     let currentContext = context;
     let remainingPath = trimmedPath;
-
+    
     // Count how many levels up we need to go
     while (remainingPath.startsWith("../")) {
       remainingPath = remainingPath.slice(3); // Remove "../"
@@ -65,13 +69,19 @@ const getContextValue = (path: string, context: TemplateData): any => {
         return undefined;
       }
     }
-
+    
     // Now resolve the remaining path in the parent context
     if (remainingPath === "") {
       return currentContext;
     } else {
       return getContextValue(remainingPath, currentContext);
     }
+  }
+
+  // Check direct property access first
+  if (context.hasOwnProperty(trimmedPath)) {
+    console.log(`Found "${trimmedPath}" directly in context:`, context[trimmedPath]);
+    return context[trimmedPath];
   }
 
   // Try getting from this first if it exists
@@ -83,7 +93,9 @@ const getContextValue = (path: string, context: TemplateData): any => {
   }
 
   // Fall back to root context
-  return getNestedValue(trimmedPath, context);
+  const result = getNestedValue(trimmedPath, context);
+  console.log(`getNestedValue result for "${trimmedPath}":`, result);
+  return result;
 };
 
 // Process variables in the template
