@@ -52,7 +52,7 @@ export class PinataService  {
                 break;
         }
 
-        console.log("contentType", contentType);
+
 
         try {
 
@@ -167,11 +167,11 @@ export class PinataService  {
         try {
             const { data, contentType: responseMimeType } = await this.fetchUrl(url);
 
-            console.log("responseMimeType:", responseMimeType);
+
 
             const fileName = path.basename(url);
             const fileExt = path.extname(url).toLowerCase();
-            console.log("fileExt:", fileExt);
+
             const contentType = this.getContentType(fileExt, responseMimeType);
             
 
@@ -182,13 +182,13 @@ export class PinataService  {
             //     return v0.toV1().toString();
             // }
 
-            console.log("uploading with contentType:", contentType);
+
 
             // console.log("upload data length:", data.length);
             const file = new File([data], fileName, { type: contentType });
             // console.log("upload file size:", file.size);
             const upload = await this.pinata.upload.file(file);
-            console.log("cid from upload:", upload.IpfsHash);
+
             return upload.IpfsHash;
           
         } catch (error) {
@@ -206,13 +206,13 @@ export class PinataService  {
             //     return v0.toV1().toString();
             // }
 
-            console.log("upload data length:", data.length);
+
             const fileName = path.basename(filePath);
             const fileExt = path.extname(fileName).toLowerCase();
             const contentType = this.getContentType(fileExt);
-            console.log("contentType before upload:", contentType);
+
             const file = new File([data], fileName, { type: contentType });
-            console.log("upload file size:", file.size);
+
             const upload = await this.pinata.upload.file(file);
             return upload.IpfsHash;
 

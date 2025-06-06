@@ -4,28 +4,6 @@
   var IPFS_URL = "https://ipfs.transport-union.dev";
 
   // renderer/src/handlebars-helpers.ts
-  function logObjectWithPosts(label, data) {
-    if (Array.isArray(data)) {
-      const truncatedPosts = data.map((p) => ({
-        title: p?.title,
-        creation_date: p?.creation_date,
-        stream_id: p?.stream_id?.slice(0, 20) + "..."
-      }));
-      console.log(label, truncatedPosts);
-    } else if (data && typeof data === "object" && data.posts && Array.isArray(data.posts)) {
-      const truncatedData = {
-        ...data,
-        posts: data.posts.map((p) => ({
-          title: p?.title,
-          creation_date: p?.creation_date,
-          stream_id: p?.stream_id?.slice(0, 20) + "..."
-        }))
-      };
-      console.log(label, truncatedData);
-    } else {
-      console.log(label, data);
-    }
-  }
   var helpers = [
     {
       name: "unique_years",
@@ -70,14 +48,11 @@
     {
       name: "filter_by_year",
       helper: function(year, posts) {
-        console.log("filter year", year);
-        logObjectWithPosts("filter posts", posts);
         if (!posts || !Array.isArray(posts) || !year) {
           return [];
         }
         try {
           const filtered = [];
-          console.log("posts", posts.length);
           for (let i = 0; i < posts.length; i++) {
             const post = posts[i];
             if (!post || !post.creation_date) continue;
@@ -89,16 +64,13 @@
                 const postYear = date.getFullYear().toString();
                 if (postYear === year) {
                   matches = true;
-                  console.log(`\u2705 ${year}: "${post.title}" (${postYear})`);
                 }
               } else {
                 const match = dateStr.match(/\b(19|20)\d{2}\b/);
                 if (match && match[0] === year) {
                   matches = true;
-                  console.log(`\u2705 ${year}: "${post.title}" (regex ${match[0]})`);
                 } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                   matches = true;
-                  console.log(`\u2705 ${year}: "${post.title}" (prefix ${dateStr.substring(0, 4)})`);
                 }
               }
               if (matches) {
@@ -108,7 +80,6 @@
               console.error("Error processing post in filter_by_year:", e);
             }
           }
-          console.log(`\u{1F3AF} ${year}: ${filtered.length} posts filtered`);
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);

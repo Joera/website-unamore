@@ -78,9 +78,6 @@ export const helpers = [
   {
     name: "filter_by_year",
     helper: function (year, posts) {
-      console.log("filter year", year);
-      logObjectWithPosts("filter posts", posts);
-
       if (!posts || !Array.isArray(posts) || !year) {
         return [];
       }
@@ -88,8 +85,6 @@ export const helpers = [
       try {
         // Filter posts by the given year
         const filtered: any[] = [];
-
-        console.log("posts", posts.length);
 
         for (let i = 0; i < posts.length; i++) {
           const post = posts[i];
@@ -105,20 +100,17 @@ export const helpers = [
               const postYear = date.getFullYear().toString();
               if (postYear === year) {
                 matches = true;
-                console.log(`✅ ${year}: "${post.title}" (${postYear})`);
               }
             } else {
               // Extract year using regex
               const match = dateStr.match(/\b(19|20)\d{2}\b/);
               if (match && match[0] === year) {
                 matches = true;
-                console.log(`✅ ${year}: "${post.title}" (regex ${match[0]})`);
               } else if (
                 dateStr.length >= 4 &&
                 dateStr.substring(0, 4) === year
               ) {
                 matches = true;
-                console.log(`✅ ${year}: "${post.title}" (prefix ${dateStr.substring(0, 4)})`);
               }
             }
 
@@ -129,8 +121,6 @@ export const helpers = [
             console.error("Error processing post in filter_by_year:", e);
           }
         }
-
-        console.log(`🎯 ${year}: ${filtered.length} posts filtered`);
 
         return filtered;
       } catch (error) {
