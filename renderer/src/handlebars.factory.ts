@@ -132,7 +132,6 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
 
     // Find all blocks and process them in document order
     const blocks = findAllBlocks(result);
-    console.log("Found blocks in order:", blocks.map(b => `${b.type}@${b.position}`));
     
     for (const block of blocks) {
       const oldResult = result;
@@ -151,19 +150,14 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       // If this block was processed, break and start over to maintain correct order
       if (result !== oldResult) {
         changed = true;
-        console.log(`${block.type.toUpperCase()} block at position ${block.position} was processed, restarting iteration`);
         break;
       }
     }
 
     // If no individual block processing happened, try all blocks once more
     if (!changed) {
-      console.log("No blocks processed individually, trying all block types...");
-      console.log("Processing IF blocks...");
       result = processIfBlocks(result, context);
-      console.log("Processing WITH blocks...");
       result = processWithBlocks(result, context);
-      console.log("Processing EACH blocks...");
       result = processEachBlocks(result, context);
       
       if (result.length !== beforeLength) {
