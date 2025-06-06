@@ -168,7 +168,7 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
             return getContextValue(arg, context);
           });
 
-          console.log("resolvedArgs", resolvedArgs);
+          // console.log("resolvedArgs", resolvedArgs);
 
           value = helper(...resolvedArgs);
         } else {
@@ -199,8 +199,8 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
         }
       }
 
-      console.log("content", content);
-      console.log("withContext", withContext);
+      // console.log("content", content);
+      // console.log("withContext", withContext);
 
       return processTemplate(content, withContext);
     } catch (error) {

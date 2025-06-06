@@ -62,6 +62,8 @@ export const helpers = [
         // Filter posts by the given year
         const filtered: any[] = [];
 
+        console.log("posts", posts.length);
+
         for (let i = 0; i < posts.length; i++) {
           const post = posts[i];
           if (!post || !post.creation_date) continue;
@@ -96,6 +98,8 @@ export const helpers = [
             console.error("Error processing post in filter_by_year:", e);
           }
         }
+
+        console.log("filtered", filtered.length);
 
         return filtered;
       } catch (error) {
