@@ -53,6 +53,7 @@
         }
         try {
           const filtered = [];
+          console.log("posts", posts.length);
           for (let i = 0; i < posts.length; i++) {
             const post = posts[i];
             if (!post || !post.creation_date) continue;
@@ -79,6 +80,7 @@
               console.error("Error processing post in filter_by_year:", e);
             }
           }
+          console.log("filtered", filtered.length);
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
@@ -683,7 +685,6 @@
                 return arg.slice(1, -1);
               return getContextValue(arg, context);
             });
-            console.log("resolvedArgs", resolvedArgs);
             value = helper(...resolvedArgs);
           } else {
             value = getContextValue(expression, context);
@@ -705,8 +706,6 @@
             withContext.this = value;
           }
         }
-        console.log("content", content);
-        console.log("withContext", withContext);
         return processTemplate(content, withContext);
       } catch (error) {
         console.error("Error in with block:", error);
