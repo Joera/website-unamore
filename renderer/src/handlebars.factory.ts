@@ -122,7 +122,7 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   let result = text;
   let changed = true;
 
-  // Process all block types in a single loop to handle nesting correctly
+  // Process all block types in document order to handle dependencies correctly
   let iteration = 0;
   while (changed) {
     iteration++;
@@ -130,17 +130,48 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
     changed = false;
     const beforeLength = result.length;
 
-    // Process innermost blocks first
-    console.log("Processing IF blocks...");
-    result = processIfBlocks(result, context);
-    console.log("Processing WITH blocks...");
-    result = processWithBlocks(result, context);
-    console.log("Processing EACH blocks...");
-    result = processEachBlocks(result, context);
+    // Find all blocks and process them in document order
+    const blocks = findAllBlocks(result);
+    console.log("Found blocks in order:", blocks.map(b => `${b.type}@${b.position}`));
+    
+    for (const block of blocks) {
+      const oldResult = result;
+      
+      if (block.type === 'if') {
+        console.log("Processing IF blocks...");
+        result = processIfBlocks(result, context);
+      } else if (block.type === 'with') {
+        console.log("Processing WITH blocks...");
+        result = processWithBlocks(result, context);
+      } else if (block.type === 'each') {
+        console.log("Processing EACH blocks...");
+        result = processEachBlocks(result, context);
+      }
+      
+      // If this block was processed, break and start over to maintain correct order
+      if (result !== oldResult) {
+        changed = true;
+        console.log(`${block.type.toUpperCase()} block at position ${block.position} was processed, restarting iteration`);
+        break;
+      }
+    }
 
-    // If any processing happened, continue the loop
-    if (result.length !== beforeLength) {
-      changed = true;
+    // If no individual block processing happened, try all blocks once more
+    if (!changed) {
+      console.log("No blocks processed individually, trying all block types...");
+      console.log("Processing IF blocks...");
+      result = processIfBlocks(result, context);
+      console.log("Processing WITH blocks...");
+      result = processWithBlocks(result, context);
+      console.log("Processing EACH blocks...");
+      result = processEachBlocks(result, context);
+      
+      if (result.length !== beforeLength) {
+        changed = true;
+      }
+    }
+
+    if (changed) {
       console.log(`Iteration ${iteration} made changes, continuing...`);
     } else {
       console.log(`Iteration ${iteration} made no changes, stopping.`);
@@ -148,6 +179,25 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   }
 
   return result;
+};
+
+// Find all block helpers in document order
+const findAllBlocks = (text: string): Array<{type: string, position: number}> => {
+  const blocks: Array<{type: string, position: number}> = [];
+  
+  // Find all block opening tags
+  const blockRegex = /{{#(if|with|each)\s/g;
+  let match;
+  
+  while ((match = blockRegex.exec(text)) !== null) {
+    blocks.push({
+      type: match[1],
+      position: match.index
+    });
+  }
+  
+  // Sort by position (document order)
+  return blocks.sort((a, b) => a.position - b.position);
 };
 
 // Process nested if blocks properly

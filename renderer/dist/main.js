@@ -674,20 +674,57 @@
       console.log(`=== Block processing iteration ${iteration} ===`);
       changed = false;
       const beforeLength = result.length;
-      console.log("Processing IF blocks...");
-      result = processIfBlocks(result, context);
-      console.log("Processing WITH blocks...");
-      result = processWithBlocks(result, context);
-      console.log("Processing EACH blocks...");
-      result = processEachBlocks(result, context);
-      if (result.length !== beforeLength) {
-        changed = true;
+      const blocks = findAllBlocks(result);
+      console.log("Found blocks in order:", blocks.map((b) => `${b.type}@${b.position}`));
+      for (const block of blocks) {
+        const oldResult = result;
+        if (block.type === "if") {
+          console.log("Processing IF blocks...");
+          result = processIfBlocks(result, context);
+        } else if (block.type === "with") {
+          console.log("Processing WITH blocks...");
+          result = processWithBlocks(result, context);
+        } else if (block.type === "each") {
+          console.log("Processing EACH blocks...");
+          result = processEachBlocks(result, context);
+        }
+        if (result !== oldResult) {
+          changed = true;
+          console.log(`${block.type.toUpperCase()} block at position ${block.position} was processed, restarting iteration`);
+          break;
+        }
+      }
+      if (!changed) {
+        console.log("No blocks processed individually, trying all block types...");
+        console.log("Processing IF blocks...");
+        result = processIfBlocks(result, context);
+        console.log("Processing WITH blocks...");
+        result = processWithBlocks(result, context);
+        console.log("Processing EACH blocks...");
+        result = processEachBlocks(result, context);
+        if (result.length !== beforeLength) {
+          changed = true;
+        }
+      }
+      if (changed) {
         console.log(`Iteration ${iteration} made changes, continuing...`);
       } else {
         console.log(`Iteration ${iteration} made no changes, stopping.`);
       }
     }
     return result;
+  };
+  var findAllBlocks = (text) => {
+    const blocks = [];
+    const blockRegex = /{{#(if|with|each)\s/g;
+    let match;
+    while ((match = blockRegex.exec(text)) !== null) {
+      blocks.push({
+        type: match[1],
+        position: match.index
+      });
+    }
+    return blocks.sort((a, b) => a.position - b.position);
   };
   var processIfBlocks = (text, context) => {
     let result = text;
