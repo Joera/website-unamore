@@ -142,8 +142,9 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   );
 
   // Process each blocks
+
   const withPattern =
-    /{{#with\s+([^}]+)(?:\s+as\s+\|([^|]+)\|)?}}\s*([\s\S]*?){{\/with}}/g;
+    /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}\s*([\s\S]*?){{\/with}}/g;
   result = result.replace(withPattern, (match, expression, alias, content) => {
     try {
       // Get the value from the expression

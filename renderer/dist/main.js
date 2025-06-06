@@ -669,7 +669,7 @@
         }
       }
     );
-    const withPattern = /{{#with\s+([^}]+)(?:\s+as\s+\|([^|]+)\|)?}}\s*([\s\S]*?){{\/with}}/g;
+    const withPattern = /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}\s*([\s\S]*?){{\/with}}/g;
     result = result.replace(withPattern, (match, expression, alias, content) => {
       try {
         let value;
