@@ -621,6 +621,23 @@
     if (trimmedPath === "this") {
       return context.this || context;
     }
+    if (trimmedPath.startsWith("../")) {
+      let currentContext = context;
+      let remainingPath = trimmedPath;
+      while (remainingPath.startsWith("../")) {
+        remainingPath = remainingPath.slice(3);
+        if (currentContext.parentContext) {
+          currentContext = currentContext.parentContext;
+        } else {
+          return void 0;
+        }
+      }
+      if (remainingPath === "") {
+        return currentContext;
+      } else {
+        return getContextValue(remainingPath, currentContext);
+      }
+    }
     if (context.this && typeof context.this === "object") {
       const fromThis = getNestedValue(trimmedPath, context.this);
       if (fromThis !== void 0) {
@@ -704,12 +721,14 @@
                 const [arg1, arg2] = args;
                 const val1 = arg1.startsWith('"') ? arg1.slice(1, -1) : arg1.startsWith("'") ? arg1.slice(1, -1) : getContextValue(arg1, context);
                 const val2 = arg2.startsWith('"') ? arg2.slice(1, -1) : arg2.startsWith("'") ? arg2.slice(1, -1) : getContextValue(arg2, context);
-                const processedContent = val1 === val2 ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
+                const ifContext = { ...context, parentContext: context };
+                const processedContent = val1 === val2 ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
                 result = result.replace(fullMatch, processedContent);
               }
             } else {
               const value = getContextValue(condition, context);
-              const processedContent = value ? processTemplate(content, context) : elseContent ? processTemplate(elseContent, context) : "";
+              const ifContext = { ...context, parentContext: context };
+              const processedContent = value ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
               result = result.replace(fullMatch, processedContent);
             }
             changed = true;
@@ -777,8 +796,10 @@
                   "@first": index === 0,
                   "@last": index === array.length - 1,
                   "@key": arrayPath.split(".").pop() || "",
-                  ...item
+                  ...item,
                   // Spread item properties at top level
+                  parentContext: context
+                  // Preserve parent context reference
                 };
                 return processTemplate(content, itemContext);
               }).join("");
@@ -865,6 +886,7 @@
                   withContext.this = value;
                 }
               }
+              withContext.parentContext = context;
               const processedContent = processTemplate(content, withContext);
               result = result.replace(fullMatch, processedContent);
             }

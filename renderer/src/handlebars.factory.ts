@@ -50,6 +50,30 @@ const getContextValue = (path: string, context: TemplateData): any => {
     return context.this || context;
   }
 
+  // Handle parent context traversal (../)
+  if (trimmedPath.startsWith("../")) {
+    let currentContext = context;
+    let remainingPath = trimmedPath;
+    
+    // Count how many levels up we need to go
+    while (remainingPath.startsWith("../")) {
+      remainingPath = remainingPath.slice(3); // Remove "../"
+      if (currentContext.parentContext) {
+        currentContext = currentContext.parentContext;
+      } else {
+        // If no parent context available, return undefined
+        return undefined;
+      }
+    }
+    
+    // Now resolve the remaining path in the parent context
+    if (remainingPath === "") {
+      return currentContext;
+    } else {
+      return getContextValue(remainingPath, currentContext);
+    }
+  }
+
   // Try getting from this first if it exists
   if (context.this && typeof context.this === "object") {
     const fromThis = getNestedValue(trimmedPath, context.this);
@@ -181,20 +205,24 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
                   ? arg2.slice(1, -1)
                   : getContextValue(arg2, context);
 
+              // Create context with parent reference for nested blocks
+              const ifContext = { ...context, parentContext: context };
               const processedContent = val1 === val2
-                ? processTemplate(content, context)
+                ? processTemplate(content, ifContext)
                 : elseContent
-                  ? processTemplate(elseContent, context)
+                  ? processTemplate(elseContent, ifContext)
                   : "";
               result = result.replace(fullMatch, processedContent);
             }
           } else {
             // Handle regular conditions
             const value = getContextValue(condition, context);
+            // Create context with parent reference for nested blocks
+            const ifContext = { ...context, parentContext: context };
             const processedContent = value
-              ? processTemplate(content, context)
+              ? processTemplate(content, ifContext)
               : elseContent
-                ? processTemplate(elseContent, context)
+                ? processTemplate(elseContent, ifContext)
                 : "";
             result = result.replace(fullMatch, processedContent);
           }
@@ -277,6 +305,7 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   "@last": index === array.length - 1,
                   "@key": arrayPath.split(".").pop() || "",
                   ...item, // Spread item properties at top level
+                  parentContext: context, // Preserve parent context reference
                 };
 
                 return processTemplate(content, itemContext);
@@ -383,6 +412,9 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
                 withContext.this = value;
               }
             }
+          
+            // Preserve parent context reference for path traversal
+            withContext.parentContext = context;
             
             const processedContent = processTemplate(content, withContext);
             result = result.replace(fullMatch, processedContent);
