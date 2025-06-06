@@ -22,12 +22,12 @@
 
                <ul>
                {{#with unique_years posts as |years|}}
-                     {{#each this}}
+
                             <li class="year_breaker">{{this}}</li>
                             {{#with filter_by_year this ../../posts as |filtered|}}
 
                             {{/with}}
-                     {{/each}}
+
                {{/with}}
                </ul>
        </section>
