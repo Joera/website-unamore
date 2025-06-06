@@ -22,7 +22,6 @@
               if (/^\d+$/.test(dateStr)) {
                 const date = new Date(parseInt(dateStr) * 1e3);
                 year = date.getFullYear().toString();
-                console.log("year fromn timestamp");
               } else {
                 const match = dateStr.match(/\b(19|20)\d{2}\b/);
                 if (match) {
@@ -39,7 +38,6 @@
             }
           }
           years.sort((a, b) => parseInt(b) - parseInt(a));
-          console.log("Sorted years:", years);
           return years;
         } catch (error) {
           console.error("Error in unique_years helper:", error);

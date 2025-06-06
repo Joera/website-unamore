@@ -24,11 +24,11 @@
                {{#with unique_years posts as |years|}}
                      {{#each this}}
                             <li class="year_breaker">{{this}}</li>
-                    <!--    {{#with filter_by_year this ../posts as |filtered|}}
-                                   {{#each filtered}}
+                            {{#with filter_by_year this ../posts as |filtered|}}
+                                   {{#each this}}
                                           <li><a href="./{{slugify title}}">{{title}}</a></li>
                                    {{/each}}
-                            {{/with}} -->
+                            {{/with}}
                      {{/each}}
                {{/with}}
                </ul>

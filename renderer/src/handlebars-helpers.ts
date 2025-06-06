@@ -23,7 +23,6 @@ export const helpers = [
               // It's a Unix timestamp - convert to year
               const date = new Date(parseInt(dateStr) * 1000);
               year = date.getFullYear().toString();
-              console.log("year fromn timestamp");
             } else {
               // Extract year using regex
               const match = dateStr.match(/\b(19|20)\d{2}\b/);
@@ -45,8 +44,6 @@ export const helpers = [
         // Sort years in descending order
         years.sort((a, b) => parseInt(b) - parseInt(a));
 
-        console.log("Sorted years:", years);
-
         return years;
       } catch (error) {
         console.error("Error in unique_years helper:", error);
@@ -63,7 +60,7 @@ export const helpers = [
 
       try {
         // Filter posts by the given year
-        const filtered = [];
+        const filtered: any[] = [];
 
         for (let i = 0; i < posts.length; i++) {
           const post = posts[i];
