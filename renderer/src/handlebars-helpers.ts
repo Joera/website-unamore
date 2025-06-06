@@ -54,6 +54,9 @@ export const helpers = [
   {
     name: "filter_by_year",
     helper: function (year, posts) {
+      console.log("filter year", year);
+      console.log("filter posts", posts);
+
       if (!posts || !Array.isArray(posts) || !year) {
         return [];
       }
