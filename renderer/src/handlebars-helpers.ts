@@ -1,14 +1,14 @@
 export const helpers =  [
     {
         name: "unique_years",
-        helper: function(posts: any[]) {
+        helper: function(posts) {
             if (!posts || !Array.isArray(posts)) {
                 return [];
             }
             
             try {
                 // Extract years from creation_date fields
-                const years: string[] = [];
+                const years = [];
                 
                 for (let i = 0; i < posts.length; i++) {
                     const post = posts[i];
@@ -17,7 +17,7 @@ export const helpers =  [
                     try {
                         // Try to handle Unix timestamp
                         const dateStr = post.creation_date;
-                        let year: string | null = null;
+                        let year = null;
                         
                         if (/^\d+$/.test(dateStr)) {
                             // It's a Unix timestamp - convert to year
@@ -53,14 +53,14 @@ export const helpers =  [
     },
     {
         name: "filter_by_year",
-        helper: function(year: string, posts: any[]) {
+        helper: function(year, posts) {
             if (!posts || !Array.isArray(posts) || !year) {
                 return [];
             }
 
             try {
                 // Filter posts by the given year
-                const filtered: any[] = [];
+                const filtered = [];
                 
                 for (let i = 0; i < posts.length; i++) {
                     const post = posts[i];
@@ -102,8 +102,6 @@ export const helpers =  [
         }
     },
     {
-        name: "get_filtered_posts",
-        helper: function(year: string) {
             return filteredPostsCache[year] || [];
         }
     },
