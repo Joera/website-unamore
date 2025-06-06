@@ -614,9 +614,6 @@
   };
   var getContextValue = (path, context) => {
     const trimmedPath = path.trim();
-    console.log(`getContextValue called with path: "${trimmedPath}"`);
-    console.log("Context has keys:", Object.keys(context));
-    console.log("Direct lookup context[path]:", context[trimmedPath]);
     if (trimmedPath === "@root") return context;
     if (trimmedPath === "@first" || trimmedPath === "@last" || trimmedPath === "@index") {
       return context[trimmedPath];
@@ -642,7 +639,6 @@
       }
     }
     if (context.hasOwnProperty(trimmedPath)) {
-      console.log(`Found "${trimmedPath}" directly in context:`, context[trimmedPath]);
       return context[trimmedPath];
     }
     if (context.this && typeof context.this === "object") {
@@ -651,9 +647,7 @@
         return fromThis;
       }
     }
-    const result = getNestedValue(trimmedPath, context);
-    console.log(`getNestedValue result for "${trimmedPath}":`, result);
-    return result;
+    return getNestedValue(trimmedPath, context);
   };
   var processVariables = (text, context) => {
     if (!text.includes("{{")) return text;
@@ -673,81 +667,86 @@
   var processBlockHelpers = (text, context) => {
     if (!text.includes("{{#")) return text;
     let result = text;
-    result = processIfBlocks(result, context);
-    result = processWithBlocks(result, context);
-    result = processEachBlocks(result, context);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const beforeLength = result.length;
+      result = processIfBlocks(result, context);
+      result = processWithBlocks(result, context);
+      result = processEachBlocks(result, context);
+      if (result.length !== beforeLength) {
+        changed = true;
+      }
+    }
     return result;
   };
   var processIfBlocks = (text, context) => {
     let result = text;
-    let changed = true;
-    while (changed) {
-      changed = false;
-      const regex = /{{#if\s+([^}]+)}}/g;
-      let match;
-      while ((match = regex.exec(result)) !== null) {
-        const startPos = match.index;
-        const condition = match[1].trim();
-        let depth = 1;
-        let pos = match.index + match[0].length;
-        let endPos = -1;
-        let elsePos = -1;
-        while (pos < result.length && depth > 0) {
-          const remainingText = result.substring(pos);
-          const openMatch = remainingText.match(/{{#if\s/);
-          const closeMatch = remainingText.match(/{{\/if}}/);
-          const elseMatch = remainingText.match(/{{else}}/);
-          let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-          let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-          let nextElse = elseMatch && depth === 1 && elsePos === -1 ? pos + remainingText.indexOf(elseMatch[0]) : Infinity;
-          if (nextElse < nextOpen && nextElse < nextClose) {
-            elsePos = nextElse;
-            pos = nextElse + 8;
-          } else if (nextClose < nextOpen) {
-            depth--;
-            if (depth === 0) {
-              endPos = nextClose;
-              break;
-            }
-            pos = nextClose + 7;
-          } else if (nextOpen < Infinity) {
-            depth++;
-            pos = nextOpen + 5;
-          } else {
+    let processedAny = false;
+    const regex = /{{#if\s+([^}]+)}}/g;
+    let match;
+    while ((match = regex.exec(result)) !== null) {
+      const startPos = match.index;
+      const condition = match[1].trim();
+      let depth = 1;
+      let pos = match.index + match[0].length;
+      let endPos = -1;
+      let elsePos = -1;
+      while (pos < result.length && depth > 0) {
+        const remainingText = result.substring(pos);
+        const openMatch = remainingText.match(/{{#if\s/);
+        const closeMatch = remainingText.match(/{{\/if}}/);
+        const elseMatch = remainingText.match(/{{else}}/);
+        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
+        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
+        let nextElse = elseMatch && depth === 1 && elsePos === -1 ? pos + remainingText.indexOf(elseMatch[0]) : Infinity;
+        if (nextElse < nextOpen && nextElse < nextClose) {
+          elsePos = nextElse;
+          pos = nextElse + 8;
+        } else if (nextClose < nextOpen) {
+          depth--;
+          if (depth === 0) {
+            endPos = nextClose;
             break;
           }
+          pos = nextClose + 7;
+        } else if (nextOpen < Infinity) {
+          depth++;
+          pos = nextOpen + 5;
+        } else {
+          break;
         }
-        if (endPos !== -1) {
-          const contentStart = startPos + match[0].length;
-          const content = elsePos !== -1 ? result.substring(contentStart, elsePos) : result.substring(contentStart, endPos);
-          const elseContent = elsePos !== -1 ? result.substring(elsePos + 8, endPos) : "";
-          const fullMatch = result.substring(startPos, endPos + 7);
-          try {
-            if (condition.startsWith("(eq ")) {
-              const argsStr = condition.slice(4, -1).trim();
-              const args = argsStr.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
-              if (args.length === 2) {
-                const [arg1, arg2] = args;
-                const val1 = arg1.startsWith('"') ? arg1.slice(1, -1) : arg1.startsWith("'") ? arg1.slice(1, -1) : getContextValue(arg1, context);
-                const val2 = arg2.startsWith('"') ? arg2.slice(1, -1) : arg2.startsWith("'") ? arg2.slice(1, -1) : getContextValue(arg2, context);
-                const ifContext = { ...context, parentContext: context };
-                const processedContent = val1 === val2 ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
-                result = result.replace(fullMatch, processedContent);
-              }
-            } else {
-              const value = getContextValue(condition, context);
+      }
+      if (endPos !== -1) {
+        const contentStart = startPos + match[0].length;
+        const content = elsePos !== -1 ? result.substring(contentStart, elsePos) : result.substring(contentStart, endPos);
+        const elseContent = elsePos !== -1 ? result.substring(elsePos + 8, endPos) : "";
+        const fullMatch = result.substring(startPos, endPos + 7);
+        try {
+          if (condition.startsWith("(eq ")) {
+            const argsStr = condition.slice(4, -1).trim();
+            const args = argsStr.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+            if (args.length === 2) {
+              const [arg1, arg2] = args;
+              const val1 = arg1.startsWith('"') ? arg1.slice(1, -1) : arg1.startsWith("'") ? arg1.slice(1, -1) : getContextValue(arg1, context);
+              const val2 = arg2.startsWith('"') ? arg2.slice(1, -1) : arg2.startsWith("'") ? arg2.slice(1, -1) : getContextValue(arg2, context);
               const ifContext = { ...context, parentContext: context };
-              const processedContent = value ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
+              const processedContent = val1 === val2 ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
               result = result.replace(fullMatch, processedContent);
             }
-            changed = true;
-            break;
-          } catch (error) {
-            console.error("Error in if block:", error);
-            result = result.replace(fullMatch, "");
-            changed = true;
-            break;
+          } else {
+            const value = getContextValue(condition, context);
+            const ifContext = { ...context, parentContext: context };
+            const processedContent = value ? processTemplate(content, ifContext) : elseContent ? processTemplate(elseContent, ifContext) : "";
+            result = result.replace(fullMatch, processedContent);
           }
+          processedAny = true;
+          break;
+        } catch (error) {
+          console.error("Error in if block:", error);
+          result = result.replace(fullMatch, "");
+          processedAny = true;
+          break;
         }
       }
     }
@@ -755,88 +754,80 @@
   };
   var processEachBlocks = (text, context) => {
     let result = text;
-    let changed = true;
-    while (changed) {
-      changed = false;
-      const regex = /{{#each\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
-      let match;
-      while ((match = regex.exec(result)) !== null) {
-        const startPos = match.index;
-        const arrayPath = match[1].trim();
-        const alias = match[2];
-        console.log("Each block match:", match[0]);
-        console.log("Array path:", arrayPath);
-        console.log("Alias:", alias);
-        let depth = 1;
-        let pos = match.index + match[0].length;
-        let endPos = -1;
-        while (pos < result.length && depth > 0) {
-          const remainingText = result.substring(pos);
-          const openMatch = remainingText.match(/{{#each\s/);
-          const closeMatch = remainingText.match(/{{\/each}}/);
-          let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-          let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-          if (nextClose < nextOpen) {
-            depth--;
-            if (depth === 0) {
-              endPos = nextClose;
-              break;
-            }
-            pos = nextClose + 9;
-          } else if (nextOpen < Infinity) {
-            depth++;
-            pos = nextOpen + 7;
-          } else {
+    let processedAny = false;
+    const regex = /{{#each\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
+    let match;
+    while ((match = regex.exec(result)) !== null) {
+      const startPos = match.index;
+      const arrayPath = match[1].trim();
+      const alias = match[2];
+      let depth = 1;
+      let pos = match.index + match[0].length;
+      let endPos = -1;
+      while (pos < result.length && depth > 0) {
+        const remainingText = result.substring(pos);
+        const openMatch = remainingText.match(/{{#each\s/);
+        const closeMatch = remainingText.match(/{{\/each}}/);
+        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
+        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
+        if (nextClose < nextOpen) {
+          depth--;
+          if (depth === 0) {
+            endPos = nextClose;
             break;
           }
+          pos = nextClose + 9;
+        } else if (nextOpen < Infinity) {
+          depth++;
+          pos = nextOpen + 7;
+        } else {
+          break;
         }
-        if (endPos !== -1) {
-          const content = result.substring(startPos + match[0].length, endPos);
-          const fullMatch = result.substring(startPos, endPos + 9);
-          try {
-            const array = getContextValue(arrayPath, context);
-            if (!Array.isArray(array)) {
-              console.error(
-                "Each block array not found or not an array:",
-                arrayPath
-              );
-              result = result.replace(fullMatch, "");
-            } else {
-              const processedContent = array.map((item, index) => {
-                const itemContext = {
-                  ...context,
-                  // Keep parent context
-                  "@index": index,
-                  "@first": index === 0,
-                  "@last": index === array.length - 1,
-                  "@key": arrayPath.split(".").pop() || "",
-                  parentContext: context
-                  // Preserve parent context reference
-                };
-                if (alias) {
-                  itemContext[alias] = item;
-                  itemContext.this = item;
-                  console.log(`Each item ${index} with alias "${alias}":`, item);
-                  console.log("Item context keys:", Object.keys(itemContext));
-                } else {
-                  itemContext.this = item;
-                  if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-                    Object.assign(itemContext, item);
-                    itemContext.this = item;
-                  }
-                }
-                return processTemplate(content, itemContext);
-              }).join("");
-              result = result.replace(fullMatch, processedContent);
-            }
-            changed = true;
-            break;
-          } catch (error) {
-            console.error("Error in each block:", error);
+      }
+      if (endPos !== -1) {
+        const content = result.substring(startPos + match[0].length, endPos);
+        const fullMatch = result.substring(startPos, endPos + 9);
+        try {
+          const array = getContextValue(arrayPath, context);
+          if (!Array.isArray(array)) {
+            console.error(
+              "Each block array not found or not an array:",
+              arrayPath
+            );
             result = result.replace(fullMatch, "");
-            changed = true;
-            break;
+          } else {
+            const processedContent = array.map((item, index) => {
+              const itemContext = {
+                ...context,
+                // Keep parent context
+                "@index": index,
+                "@first": index === 0,
+                "@last": index === array.length - 1,
+                "@key": arrayPath.split(".").pop() || "",
+                parentContext: context
+                // Preserve parent context reference
+              };
+              if (alias) {
+                itemContext[alias] = item;
+                itemContext.this = item;
+              } else {
+                itemContext.this = item;
+                if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+                  Object.assign(itemContext, item);
+                  itemContext.this = item;
+                }
+              }
+              return processTemplate(content, itemContext);
+            }).join("");
+            result = result.replace(fullMatch, processedContent);
           }
+          processedAny = true;
+          break;
+        } catch (error) {
+          console.error("Error in each block:", error);
+          result = result.replace(fullMatch, "");
+          processedAny = true;
+          break;
         }
       }
     }
@@ -844,97 +835,85 @@
   };
   var processWithBlocks = (text, context) => {
     let result = text;
-    let changed = true;
-    while (changed) {
-      changed = false;
-      const regex = /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
-      let match;
-      while ((match = regex.exec(result)) !== null) {
-        const startPos = match.index;
-        const expression = match[1].trim();
-        const alias = match[2];
-        let depth = 1;
-        let pos = match.index + match[0].length;
-        let endPos = -1;
-        while (pos < result.length && depth > 0) {
-          const remainingText = result.substring(pos);
-          const openMatch = remainingText.match(/{{#with\s/);
-          const closeMatch = remainingText.match(/{{\/with}}/);
-          let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
-          let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
-          if (nextClose < nextOpen) {
-            depth--;
-            if (depth === 0) {
-              endPos = nextClose;
-              break;
-            }
-            pos = nextClose + 9;
-          } else if (nextOpen < Infinity) {
-            depth++;
-            pos = nextOpen + 6;
-          } else {
+    let processedAny = false;
+    const regex = /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
+    let match;
+    while ((match = regex.exec(result)) !== null) {
+      const startPos = match.index;
+      const expression = match[1].trim();
+      const alias = match[2];
+      let depth = 1;
+      let pos = match.index + match[0].length;
+      let endPos = -1;
+      while (pos < result.length && depth > 0) {
+        const remainingText = result.substring(pos);
+        const openMatch = remainingText.match(/{{#with\s/);
+        const closeMatch = remainingText.match(/{{\/with}}/);
+        let nextOpen = openMatch ? pos + remainingText.indexOf(openMatch[0]) : Infinity;
+        let nextClose = closeMatch ? pos + remainingText.indexOf(closeMatch[0]) : Infinity;
+        if (nextClose < nextOpen) {
+          depth--;
+          if (depth === 0) {
+            endPos = nextClose;
             break;
           }
+          pos = nextClose + 9;
+        } else if (nextOpen < Infinity) {
+          depth++;
+          pos = nextOpen + 6;
+        } else {
+          break;
         }
-        if (endPos !== -1) {
-          const content = result.substring(startPos + match[0].length, endPos);
-          const fullMatch = result.substring(startPos, endPos + 9);
-          try {
-            let value;
-            if (expression.includes(" ")) {
-              const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
-              const helper = helperMap.get(helperName);
-              if (helper) {
-                const resolvedArgs = args.map((arg, index) => {
-                  let resolved;
-                  if (arg.startsWith('"') && arg.endsWith('"')) {
-                    resolved = arg.slice(1, -1);
-                  } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                    resolved = arg.slice(1, -1);
-                  } else {
-                    resolved = getContextValue(arg, context);
-                  }
-                  if (helperName === "filter_by_year") {
-                    console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
-                  }
-                  return resolved;
-                });
-                if (helperName === "filter_by_year") {
-                  console.log("Context keys:", Object.keys(context));
-                  console.log("Calling filter_by_year with:", resolvedArgs);
+      }
+      if (endPos !== -1) {
+        const content = result.substring(startPos + match[0].length, endPos);
+        const fullMatch = result.substring(startPos, endPos + 9);
+        try {
+          let value;
+          if (expression.includes(" ")) {
+            const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
+            const helper = helperMap.get(helperName);
+            if (helper) {
+              const resolvedArgs = args.map((arg) => {
+                if (arg.startsWith('"') && arg.endsWith('"')) {
+                  return arg.slice(1, -1);
+                } else if (arg.startsWith("'") && arg.endsWith("'")) {
+                  return arg.slice(1, -1);
+                } else {
+                  return getContextValue(arg, context);
                 }
-                value = helper(...resolvedArgs);
-              } else {
-                value = getContextValue(expression, context);
-              }
+              });
+              value = helper(...resolvedArgs);
             } else {
               value = getContextValue(expression, context);
             }
-            if (value === void 0 || value === null) {
-              result = result.replace(fullMatch, "");
-            } else {
-              const withContext = { ...context };
-              if (alias) {
-                withContext[alias] = value;
-              } else {
-                if (typeof value === "object" && !Array.isArray(value)) {
-                  Object.assign(withContext, value);
-                } else {
-                  withContext.this = value;
-                }
-              }
-              withContext.parentContext = context;
-              const processedContent = processTemplate(content, withContext);
-              result = result.replace(fullMatch, processedContent);
-            }
-            changed = true;
-            break;
-          } catch (error) {
-            console.error("Error in with block:", error);
-            result = result.replace(fullMatch, "");
-            changed = true;
-            break;
+          } else {
+            value = getContextValue(expression, context);
           }
+          if (value === void 0 || value === null) {
+            result = result.replace(fullMatch, "");
+          } else {
+            const withContext = { ...context };
+            if (alias) {
+              withContext[alias] = value;
+            } else {
+              if (typeof value === "object" && !Array.isArray(value)) {
+                Object.assign(withContext, value);
+              } else {
+                withContext.this = value;
+              }
+            }
+            withContext.parentContext = context;
+            const processedContent = processTemplate(content, withContext);
+            result = result.replace(fullMatch, processedContent);
+          }
+          processedAny = true;
+          break;
+        } catch (error) {
+          console.error("Error in with block:", error);
+          result = result.replace(fullMatch, "");
+          processedAny = true;
+          break;
         }
       }
     }

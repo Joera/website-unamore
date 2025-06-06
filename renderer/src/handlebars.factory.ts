@@ -35,10 +35,6 @@ const getNestedValue = (path: string, data: TemplateData): any => {
 const getContextValue = (path: string, context: TemplateData): any => {
   const trimmedPath = path.trim();
 
-  console.log(`getContextValue called with path: "${trimmedPath}"`);
-  console.log("Context has keys:", Object.keys(context));
-  console.log("Direct lookup context[path]:", context[trimmedPath]);
-
   // Handle special variables
   if (trimmedPath === "@root") return context;
   if (
@@ -80,7 +76,6 @@ const getContextValue = (path: string, context: TemplateData): any => {
 
   // Check direct property access first
   if (context.hasOwnProperty(trimmedPath)) {
-    console.log(`Found "${trimmedPath}" directly in context:`, context[trimmedPath]);
     return context[trimmedPath];
   }
 
@@ -93,9 +88,7 @@ const getContextValue = (path: string, context: TemplateData): any => {
   }
 
   // Fall back to root context
-  const result = getNestedValue(trimmedPath, context);
-  console.log(`getNestedValue result for "${trimmedPath}":`, result);
-  return result;
+  return getNestedValue(trimmedPath, context);
 };
 
 // Process variables in the template
@@ -127,15 +120,23 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   if (!text.includes("{{#")) return text;
 
   let result = text;
+  let changed = true;
 
-  // Process if blocks with proper nesting support
-  result = processIfBlocks(result, context);
+  // Process all block types in a single loop to handle nesting correctly
+  while (changed) {
+    changed = false;
+    const beforeLength = result.length;
 
-  // Process with blocks using proper parser for nested blocks
-  result = processWithBlocks(result, context);
+    // Process innermost blocks first
+    result = processIfBlocks(result, context);
+    result = processWithBlocks(result, context);
+    result = processEachBlocks(result, context);
 
-  // Process each blocks with proper nesting support
-  result = processEachBlocks(result, context);
+    // If any processing happened, continue the loop
+    if (result.length !== beforeLength) {
+      changed = true;
+    }
+  }
 
   return result;
 };
@@ -143,10 +144,7 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
 // Process nested if blocks properly
 const processIfBlocks = (text: string, context: TemplateData): string => {
   let result = text;
-  let changed = true;
-
-  while (changed) {
-    changed = false;
+  let processedAny = false;
     const regex = /{{#if\s+([^}]+)}}/g;
     let match;
 
@@ -247,28 +245,24 @@ const processIfBlocks = (text: string, context: TemplateData): string => {
             result = result.replace(fullMatch, processedContent);
           }
 
-          changed = true;
+          processedAny = true;
           break;
         } catch (error) {
           console.error("Error in if block:", error);
           result = result.replace(fullMatch, "");
-          changed = true;
+          processedAny = true;
           break;
         }
       }
     }
-  }
-
+  
   return result;
 };
 
 // Process nested each blocks properly
 const processEachBlocks = (text: string, context: TemplateData): string => {
   let result = text;
-  let changed = true;
-
-  while (changed) {
-    changed = false;
+  let processedAny = false;
     const regex =
       /{{#each\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
     let match;
@@ -277,10 +271,6 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
       const startPos = match.index;
       const arrayPath = match[1].trim();
       const alias = match[2];
-      
-      console.log("Each block match:", match[0]);
-      console.log("Array path:", arrayPath);
-      console.log("Alias:", alias);
       
       // Find the matching {{/each}} by counting nested blocks
       let depth = 1;
@@ -344,8 +334,6 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   itemContext[alias] = item;
                   // Keep this as the item for backward compatibility
                   itemContext.this = item;
-                  console.log(`Each item ${index} with alias "${alias}":`, item);
-                  console.log("Item context keys:", Object.keys(itemContext));
                 } else {
                   // No alias - use original behavior
                   itemContext.this = item;
@@ -367,28 +355,24 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
             result = result.replace(fullMatch, processedContent);
           }
 
-          changed = true;
+          processedAny = true;
           break;
         } catch (error) {
           console.error("Error in each block:", error);
           result = result.replace(fullMatch, "");
-          changed = true;
+          processedAny = true;
           break;
         }
       }
     }
-  }
-
+  
   return result;
 };
 
 // Process nested with blocks properly
 const processWithBlocks = (text: string, context: TemplateData): string => {
   let result = text;
-  let changed = true;
-
-  while (changed) {
-    changed = false;
+  let processedAny = false;
     const regex =
       /{{#with\s+([^}]*?)(?=\s+as\s+|}})\s*(?:as\s+\|([^|]+)\|)?\s*}}/g;
     let match;
@@ -443,26 +427,15 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
             const helper = helperMap.get(helperName);
             
             if (helper) {
-              const resolvedArgs = args.map((arg, index) => {
-                let resolved;
+              const resolvedArgs = args.map(arg => {
                 if (arg.startsWith('"') && arg.endsWith('"')) {
-                  resolved = arg.slice(1, -1);
+                  return arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                  resolved = arg.slice(1, -1);
+                  return arg.slice(1, -1);
                 } else {
-                  resolved = getContextValue(arg, context);
+                  return getContextValue(arg, context);
                 }
-                
-                if (helperName === "filter_by_year") {
-                  console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
-                }
-                return resolved;
               });
-              
-              if (helperName === "filter_by_year") {
-                console.log("Context keys:", Object.keys(context));
-                console.log("Calling filter_by_year with:", resolvedArgs);
-              }
               
               value = helper(...resolvedArgs);
             } else {
@@ -493,18 +466,17 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
             result = result.replace(fullMatch, processedContent);
           }
 
-          changed = true;
+          processedAny = true;
           break;
         } catch (error) {
           console.error("Error in with block:", error);
           result = result.replace(fullMatch, "");
-          changed = true;
+          processedAny = true;
           break;
         }
       }
     }
-  }
-
+  
   return result;
 };
 
