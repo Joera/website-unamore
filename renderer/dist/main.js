@@ -22,6 +22,7 @@
               if (/^\d+$/.test(dateStr)) {
                 const date = new Date(parseInt(dateStr) * 1e3);
                 year = date.getFullYear().toString();
+                console.log("year fromn timestamp");
               } else {
                 const match = dateStr.match(/\b(19|20)\d{2}\b/);
                 if (match) {
@@ -38,6 +39,7 @@
             }
           }
           years.sort((a, b) => parseInt(b) - parseInt(a));
+          console.log("Sorted years:", years);
           return years;
         } catch (error) {
           console.error("Error in unique_years helper:", error);
@@ -87,12 +89,6 @@
       }
     },
     {
-      name: "get_filtered_posts",
-      helper: function(year) {
-        return filteredPostsCache[year] || [];
-      }
-    },
-    {
       name: "extract_images",
       helper: (input) => {
         if (!input) return "x";
@@ -137,7 +133,10 @@
     {
       name: "moreTag",
       helper: (content) => {
-        content = content.replace("===more", '<a href="#" class="more_link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 30" fill="none" x="0px" y="0px"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.6159 9.67991C5.79268 9.46777 6.10797 9.4391 6.3201 9.61589L12 14.3491L17.6799 9.61589C17.8921 9.4391 18.2073 9.46777 18.3841 9.67991C18.5609 9.89204 18.5322 10.2073 18.3201 10.3841L12.3201 15.3841C12.1347 15.5386 11.8653 15.5386 11.6799 15.3841L5.67992 10.3841C5.46778 10.2073 5.43912 9.89204 5.6159 9.67991Z" fill="black"/></svg><span>Lees verder ...</span></a><div class="more">');
+        content = content.replace(
+          "===more",
+          '<a href="#" class="more_link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 30" fill="none" x="0px" y="0px"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.6159 9.67991C5.79268 9.46777 6.10797 9.4391 6.3201 9.61589L12 14.3491L17.6799 9.61589C17.8921 9.4391 18.2073 9.46777 18.3841 9.67991C18.5609 9.89204 18.5322 10.2073 18.3201 10.3841L12.3201 15.3841C12.1347 15.5386 11.8653 15.5386 11.6799 15.3841L5.67992 10.3841C5.46778 10.2073 5.43912 9.89204 5.6159 9.67991Z" fill="black"/></svg><span>Lees verder ...</span></a><div class="more">'
+        );
         content = content.replace("<p></p>", "");
         content = content + "</div>";
         return content;
@@ -269,7 +268,7 @@
       name: "stripHTML",
       helper: (content) => {
         if (content !== null && content !== void 0) {
-          const strippedFromHtml = content.toString().replace(/(&nbsp;|<([^>]+)>)/ig, "");
+          const strippedFromHtml = content.toString().replace(/(&nbsp;|<([^>]+)>)/gi, "");
           return strippedFromHtml;
         } else {
           return "";
@@ -324,7 +323,7 @@
       name: "anchorify",
       helper: (words) => {
         if (words !== void 0 && words !== null && typeof words !== "object") {
-          return words.toString().replace(/(&nbsp;|<([^>]+)>)/ig, "").toLowerCase().replace(/[^a-zA-Z ]/g, "").trim().split(" ").slice(0, 3).join("-");
+          return words.toString().replace(/(&nbsp;|<([^>]+)>)/gi, "").toLowerCase().replace(/[^a-zA-Z ]/g, "").trim().split(" ").slice(0, 3).join("-");
         } else {
           return "fout-in-anchor";
         }
@@ -676,13 +675,17 @@
         let value;
         if (expression.includes(" ")) {
           const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
+          console.log(helperName);
           const helper = helperMap.get(helperName);
           if (helper) {
             const resolvedArgs = args.map((arg) => {
-              if (arg.startsWith('"') && arg.endsWith('"')) return arg.slice(1, -1);
-              if (arg.startsWith("'") && arg.endsWith("'")) return arg.slice(1, -1);
+              if (arg.startsWith('"') && arg.endsWith('"'))
+                return arg.slice(1, -1);
+              if (arg.startsWith("'") && arg.endsWith("'"))
+                return arg.slice(1, -1);
               return getContextValue(arg, context);
             });
+            console.log("resolvedArgs", resolvedArgs);
             value = helper(...resolvedArgs);
           } else {
             value = getContextValue(expression, context);
@@ -693,6 +696,7 @@
         if (value === void 0 || value === null) {
           return "";
         }
+        console.log("value", value);
         const withContext = { ...context };
         if (alias) {
           withContext[alias] = value;
@@ -703,6 +707,8 @@
             withContext.this = value;
           }
         }
+        console.log("content", content);
+        console.log("withContext", withContext);
         return processTemplate(content, withContext);
       } catch (error) {
         console.error("Error in with block:", error);
