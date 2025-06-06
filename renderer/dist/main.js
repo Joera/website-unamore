@@ -62,45 +62,31 @@
             try {
               const dateStr = post.creation_date;
               let matches = false;
-              console.log(`=== PROCESSING POST ${i} FOR YEAR ${year} ===`);
-              console.log(`Post creation_date: ${dateStr}`);
-              console.log(`Post title: ${post.title}`);
               if (/^\d+$/.test(dateStr)) {
                 const date = new Date(parseInt(dateStr) * 1e3);
                 const postYear = date.getFullYear().toString();
-                console.log(`Unix timestamp -> Year: ${postYear}`);
                 if (postYear === year) {
                   matches = true;
-                  console.log(`\u2705 MATCH: Post year ${postYear} matches target year ${year}`);
-                } else {
-                  console.log(`\u274C NO MATCH: Post year ${postYear} != target year ${year}`);
+                  console.log(`\u2705 ${year}: "${post.title}" (${postYear})`);
                 }
               } else {
                 const match = dateStr.match(/\b(19|20)\d{2}\b/);
-                console.log(`Regex match result:`, match);
                 if (match && match[0] === year) {
                   matches = true;
-                  console.log(`\u2705 REGEX MATCH: Found year ${match[0]}`);
+                  console.log(`\u2705 ${year}: "${post.title}" (regex ${match[0]})`);
                 } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                   matches = true;
-                  console.log(`\u2705 PREFIX MATCH: First 4 chars ${dateStr.substring(0, 4)}`);
-                } else {
-                  console.log(`\u274C NO REGEX/PREFIX MATCH`);
+                  console.log(`\u2705 ${year}: "${post.title}" (prefix ${dateStr.substring(0, 4)})`);
                 }
               }
               if (matches) {
                 filtered.push(post);
-                console.log(`\u{1F3AF} Added post "${post.title}" to filtered array`);
               }
-              console.log(`=== END POST ${i} ===`);
             } catch (e) {
               console.error("Error processing post in filter_by_year:", e);
             }
           }
-          console.log(`=== FINAL RESULT FOR YEAR ${year} ===`);
-          console.log("filtered", filtered.length);
-          console.log("filtered post titles:", filtered.map((p) => p.title));
-          console.log(`=== END FILTER RESULT ===`);
+          console.log(`\u{1F3AF} ${year}: ${filtered.length} posts filtered`);
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
