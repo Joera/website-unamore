@@ -4,6 +4,28 @@
   var IPFS_URL = "https://ipfs.transport-union.dev";
 
   // renderer/src/handlebars-helpers.ts
+  function logObjectWithPosts(label, data) {
+    if (Array.isArray(data)) {
+      const truncatedPosts = data.map((p) => ({
+        title: p?.title,
+        creation_date: p?.creation_date,
+        stream_id: p?.stream_id?.slice(0, 20) + "..."
+      }));
+      console.log(label, truncatedPosts);
+    } else if (data && typeof data === "object" && data.posts && Array.isArray(data.posts)) {
+      const truncatedData = {
+        ...data,
+        posts: data.posts.map((p) => ({
+          title: p?.title,
+          creation_date: p?.creation_date,
+          stream_id: p?.stream_id?.slice(0, 20) + "..."
+        }))
+      };
+      console.log(label, truncatedData);
+    } else {
+      console.log(label, data);
+    }
+  }
   var helpers = [
     {
       name: "unique_years",
@@ -49,11 +71,7 @@
       name: "filter_by_year",
       helper: function(year, posts) {
         console.log("filter year", year);
-        console.log("filter posts", posts?.map((p) => ({
-          title: p?.title,
-          creation_date: p?.creation_date,
-          stream_id: p?.stream_id?.slice(0, 20) + "..."
-        })) || []);
+        logObjectWithPosts("filter posts", posts);
         if (!posts || !Array.isArray(posts) || !year) {
           return [];
         }
