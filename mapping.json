@@ -37,7 +37,7 @@
           "source": "orbisdb",
           "key": "posts",
           "value": "post",
-          "query": "SELECT * from {{table}} WHERE publications ? '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC"
+          "query": "SELECT * from {{table}} WHERE publications ? '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC LIMIT 24"
         }
       ]
     },
