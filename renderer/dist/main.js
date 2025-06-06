@@ -1054,7 +1054,6 @@
         console.error("Empty template after cleaning");
         return "";
       }
-      templateData2 = templateData2.filter((d) => d != null);
       console.log(templateData2);
       const partialFiles = templateArray.filter(
         (t) => t.path.includes("partials/")
