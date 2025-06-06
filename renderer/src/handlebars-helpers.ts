@@ -5,24 +5,25 @@ export const helpers =  [
             if (!posts || !Array.isArray(posts)) {
                 return [];
             }
-            
+
             try {
                 // Extract years from creation_date fields
-                const years = [];
-                
+                const years: string[] = [];
+
                 for (let i = 0; i < posts.length; i++) {
                     const post = posts[i];
                     if (!post || !post.creation_date) continue;
-                    
+
                     try {
                         // Try to handle Unix timestamp
                         const dateStr = post.creation_date;
-                        let year = null;
-                        
+                        let year: string | null = null;
+
                         if (/^\d+$/.test(dateStr)) {
                             // It's a Unix timestamp - convert to year
                             const date = new Date(parseInt(dateStr) * 1000);
                             year = date.getFullYear().toString();
+                            console.log("year fromn timestamp")
                         } else {
                             // Extract year using regex
                             const match = dateStr.match(/\b(19|20)\d{2}\b/);
@@ -32,7 +33,7 @@ export const helpers =  [
                                 year = dateStr.substring(0, 4);
                             }
                         }
-                        
+
                         if (year && !years.includes(year)) {
                             years.push(year);
                         }
@@ -40,10 +41,12 @@ export const helpers =  [
                         console.error("Error processing post date:", e);
                     }
                 }
-                
+
                 // Sort years in descending order
                 years.sort((a, b) => parseInt(b) - parseInt(a));
-                
+
+                console.log("Sorted years:", years);
+
                 return years;
             } catch (error) {
                 console.error("Error in unique_years helper:", error);
@@ -61,15 +64,15 @@ export const helpers =  [
             try {
                 // Filter posts by the given year
                 const filtered = [];
-                
+
                 for (let i = 0; i < posts.length; i++) {
                     const post = posts[i];
                     if (!post || !post.creation_date) continue;
-                    
+
                     try {
                         const dateStr = post.creation_date;
                         let matches = false;
-                        
+
                         // Check if it's a Unix timestamp
                         if (/^\d+$/.test(dateStr)) {
                             const date = new Date(parseInt(dateStr) * 1000);
@@ -85,7 +88,7 @@ export const helpers =  [
                                 matches = true;
                             }
                         }
-                        
+
                         if (matches) {
                             filtered.push(post);
                         }
@@ -93,7 +96,7 @@ export const helpers =  [
                         console.error("Error processing post in filter_by_year:", e);
                     }
                 }
-                
+
                 return filtered;
             } catch (error) {
                 console.error("Error in filter_by_year helper:", error);
@@ -114,11 +117,11 @@ export const helpers =  [
             let arr: string[] = input.split('<').map((item) => item.trim());
 
             let prevWasImage = false;
-    
+
             // Remove the first and last elements from the array
             arr[0] = "";
             arr.pop();
-    
+
             // Process each element of the array
             arr = arr.map((item) => {
                 if (item.startsWith("img") && !prevWasImage) {
@@ -131,7 +134,7 @@ export const helpers =  [
                     return item;
                 }
             });
-    
+
             // Join the array back into a string
             return arr.join("<");
         }
@@ -160,7 +163,7 @@ export const helpers =  [
     {
         name: "moreTag",
         helper: (content: string) => {
-            
+
             content = content.replace('===more', '<a href="#" class="more_link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 30" fill="none" x="0px" y="0px"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.6159 9.67991C5.79268 9.46777 6.10797 9.4391 6.3201 9.61589L12 14.3491L17.6799 9.61589C17.8921 9.4391 18.2073 9.46777 18.3841 9.67991C18.5609 9.89204 18.5322 10.2073 18.3201 10.3841L12.3201 15.3841C12.1347 15.5386 11.8653 15.5386 11.6799 15.3841L5.67992 10.3841C5.46778 10.2073 5.43912 9.89204 5.6159 9.67991Z" fill="black"/></svg><span>Lees verder ...</span></a><div class="more">')
             content = content.replace('<p></p>','');
             content = content + '</div>';
@@ -170,7 +173,7 @@ export const helpers =  [
     {
         name: "relPath",
         helper: (type: string, language: string, options: any) => {
-            
+
             let path = './';
             if (language == 'en') {
                 path = '../';
@@ -182,15 +185,15 @@ export const helpers =  [
         name: "backgroundify",
         helper: (content: string) => {
             if (!content) return '';
-            
+
             try {
                 if (typeof content !== 'string') {
                     content = String(content);
                 }
-                
+
                 content = content.replace(/<p>/g,'<p><span>');
                 content = content.replace(/<\/p>/g,'</span></p>');
-                
+
                 return content;
             } catch (error) {
                 console.error('Error in backgroundify helper:', error);
@@ -393,8 +396,8 @@ export const helpers =  [
                         break;
                     default:
                         lCode = 'en-US'
-                        break; 
-                        
+                        break;
+
 
                 }
 
@@ -404,7 +407,7 @@ export const helpers =  [
                     month: 'numeric',
                     year: 'numeric'
                 });
-                
+
                 return formatter.format(parsed);
             } catch (error) {
                 console.error('formatDate error:', error);
@@ -441,8 +444,8 @@ export const helpers =  [
                         break;
                     default:
                         lCode = 'en-US'
-                        break; 
-                        
+                        break;
+
 
                 }
 
@@ -452,7 +455,7 @@ export const helpers =  [
                     month: 'long',
                     year: 'numeric'
                 });
-                
+
                 return formatter.format(parsed);
             } catch (error) {
                 console.error('formatDate error:', error);

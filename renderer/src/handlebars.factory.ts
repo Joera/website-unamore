@@ -154,6 +154,8 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
         const [helperName, ...args] = expression
           .split(" ")
           .map((part) => part.trim());
+
+        console.log(helperName);
         const helper = helperMap.get(helperName);
 
         if (helper) {
@@ -166,6 +168,8 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
             return getContextValue(arg, context);
           });
 
+          console.log("resolvedArgs", resolvedArgs);
+
           value = helper(...resolvedArgs);
         } else {
           value = getContextValue(expression, context);
@@ -177,6 +181,8 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       if (value === undefined || value === null) {
         return "";
       }
+
+      console.log("value", value);
 
       // Create a new context with the value
       const withContext = { ...context };
@@ -192,6 +198,9 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
           withContext.this = value;
         }
       }
+
+      console.log("content", content);
+      console.log("withContext", withContext);
 
       return processTemplate(content, withContext);
     } catch (error) {
