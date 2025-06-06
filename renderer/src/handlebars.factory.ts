@@ -183,6 +183,7 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       }
 
       console.log("value", value);
+      console.log("alias", alias);
 
       // Create a new context with the value
       const withContext = { ...context };
