@@ -668,14 +668,23 @@
     if (!text.includes("{{#")) return text;
     let result = text;
     let changed = true;
+    let iteration = 0;
     while (changed) {
+      iteration++;
+      console.log(`=== Block processing iteration ${iteration} ===`);
       changed = false;
       const beforeLength = result.length;
+      console.log("Processing IF blocks...");
       result = processIfBlocks(result, context);
+      console.log("Processing WITH blocks...");
       result = processWithBlocks(result, context);
+      console.log("Processing EACH blocks...");
       result = processEachBlocks(result, context);
       if (result.length !== beforeLength) {
         changed = true;
+        console.log(`Iteration ${iteration} made changes, continuing...`);
+      } else {
+        console.log(`Iteration ${iteration} made no changes, stopping.`);
       }
     }
     return result;
@@ -761,6 +770,8 @@
       const startPos = match.index;
       const arrayPath = match[1].trim();
       const alias = match[2];
+      console.log("Each block processing:", match[0]);
+      console.log("Array path:", arrayPath, "Alias:", alias);
       let depth = 1;
       let pos = match.index + match[0].length;
       let endPos = -1;
@@ -810,6 +821,7 @@
               if (alias) {
                 itemContext[alias] = item;
                 itemContext.this = item;
+                console.log(`Setting alias "${alias}" = ${item} in context`);
               } else {
                 itemContext.this = item;
                 if (typeof item === "object" && item !== null && !Array.isArray(item)) {
@@ -842,6 +854,8 @@
       const startPos = match.index;
       const expression = match[1].trim();
       const alias = match[2];
+      console.log("With block processing:", match[0]);
+      console.log("Expression:", expression, "Alias:", alias);
       let depth = 1;
       let pos = match.index + match[0].length;
       let endPos = -1;
@@ -874,15 +888,30 @@
             const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
             const helper = helperMap.get(helperName);
             if (helper) {
-              const resolvedArgs = args.map((arg) => {
+              const resolvedArgs = args.map((arg, index) => {
+                let resolved;
                 if (arg.startsWith('"') && arg.endsWith('"')) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else {
-                  return getContextValue(arg, context);
+                  resolved = getContextValue(arg, context);
                 }
+                if (helperName === "filter_by_year") {
+                  console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
+                  console.log("Context keys when resolving:", Object.keys(context));
+                }
+                return resolved;
               });
+              if (helperName === "filter_by_year") {
+                console.log("=== FILTER_BY_YEAR DEBUG ===");
+                console.log("Expression:", expression);
+                console.log("Args:", args);
+                console.log("Resolved args:", resolvedArgs);
+                console.log("Context has year?", context.hasOwnProperty("year"));
+                console.log("Context.year:", context["year"]);
+                console.log("=== END DEBUG ===");
+              }
               value = helper(...resolvedArgs);
             } else {
               value = getContextValue(expression, context);

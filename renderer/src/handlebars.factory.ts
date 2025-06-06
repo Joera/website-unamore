@@ -123,18 +123,27 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   let changed = true;
 
   // Process all block types in a single loop to handle nesting correctly
+  let iteration = 0;
   while (changed) {
+    iteration++;
+    console.log(`=== Block processing iteration ${iteration} ===`);
     changed = false;
     const beforeLength = result.length;
 
     // Process innermost blocks first
+    console.log("Processing IF blocks...");
     result = processIfBlocks(result, context);
+    console.log("Processing WITH blocks...");
     result = processWithBlocks(result, context);
+    console.log("Processing EACH blocks...");
     result = processEachBlocks(result, context);
 
     // If any processing happened, continue the loop
     if (result.length !== beforeLength) {
       changed = true;
+      console.log(`Iteration ${iteration} made changes, continuing...`);
+    } else {
+      console.log(`Iteration ${iteration} made no changes, stopping.`);
     }
   }
 
@@ -272,6 +281,9 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
       const arrayPath = match[1].trim();
       const alias = match[2];
       
+      console.log("Each block processing:", match[0]);
+      console.log("Array path:", arrayPath, "Alias:", alias);
+      
       // Find the matching {{/each}} by counting nested blocks
       let depth = 1;
       let pos = match.index + match[0].length;
@@ -334,6 +346,7 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   itemContext[alias] = item;
                   // Keep this as the item for backward compatibility
                   itemContext.this = item;
+                  console.log(`Setting alias "${alias}" = ${item} in context`);
                 } else {
                   // No alias - use original behavior
                   itemContext.this = item;
@@ -381,6 +394,9 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
       const startPos = match.index;
       const expression = match[1].trim();
       const alias = match[2];
+      
+      console.log("With block processing:", match[0]);
+      console.log("Expression:", expression, "Alias:", alias);
 
       // Find the matching {{/with}} by counting nested blocks
       let depth = 1;
@@ -427,15 +443,32 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
             const helper = helperMap.get(helperName);
             
             if (helper) {
-              const resolvedArgs = args.map(arg => {
+              const resolvedArgs = args.map((arg, index) => {
+                let resolved;
                 if (arg.startsWith('"') && arg.endsWith('"')) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else {
-                  return getContextValue(arg, context);
+                  resolved = getContextValue(arg, context);
                 }
+                
+                if (helperName === "filter_by_year") {
+                  console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
+                  console.log("Context keys when resolving:", Object.keys(context));
+                }
+                return resolved;
               });
+              
+              if (helperName === "filter_by_year") {
+                console.log("=== FILTER_BY_YEAR DEBUG ===");
+                console.log("Expression:", expression);
+                console.log("Args:", args);
+                console.log("Resolved args:", resolvedArgs);
+                console.log("Context has year?", context.hasOwnProperty("year"));
+                console.log("Context.year:", context["year"]);
+                console.log("=== END DEBUG ===");
+              }
               
               value = helper(...resolvedArgs);
             } else {
