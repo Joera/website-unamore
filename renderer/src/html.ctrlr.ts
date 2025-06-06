@@ -76,6 +76,8 @@ export const renderHTML = async (
       return "";
     }
 
+    templateData = templateData.filter((d) => d != null);
+
     console.log(templateData);
 
     // Find and process partials
