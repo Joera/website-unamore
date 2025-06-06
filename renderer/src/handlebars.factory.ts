@@ -126,7 +126,6 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
   let iteration = 0;
   while (changed) {
     iteration++;
-    console.log(`=== Block processing iteration ${iteration} ===`);
     changed = false;
     const beforeLength = result.length;
 
@@ -137,13 +136,10 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       const oldResult = result;
       
       if (block.type === 'if') {
-        console.log("Processing IF blocks...");
         result = processIfBlocks(result, context);
       } else if (block.type === 'with') {
-        console.log("Processing WITH blocks...");
         result = processWithBlocks(result, context);
       } else if (block.type === 'each') {
-        console.log("Processing EACH blocks...");
         result = processEachBlocks(result, context);
       }
       
@@ -165,11 +161,7 @@ const processBlockHelpers = (text: string, context: TemplateData): string => {
       }
     }
 
-    if (changed) {
-      console.log(`Iteration ${iteration} made changes, continuing...`);
-    } else {
-      console.log(`Iteration ${iteration} made no changes, stopping.`);
-    }
+
   }
 
   return result;
@@ -325,8 +317,7 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
       const arrayPath = match[1].trim();
       const alias = match[2];
       
-      console.log("Each block processing:", match[0]);
-      console.log("Array path:", arrayPath, "Alias:", alias);
+
       
       // Find the matching {{/each}} by counting nested blocks
       let depth = 1;
@@ -390,7 +381,7 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   itemContext[alias] = item;
                   // Keep this as the item for backward compatibility
                   itemContext.this = item;
-                  console.log(`Setting alias "${alias}" = ${item} in context`);
+
                 } else {
                   // No alias - use original behavior
                   itemContext.this = item;
@@ -439,8 +430,7 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
       const expression = match[1].trim();
       const alias = match[2];
       
-      console.log("With block processing:", match[0]);
-      console.log("Expression:", expression, "Alias:", alias);
+
 
       // Find the matching {{/with}} by counting nested blocks
       let depth = 1;
@@ -497,16 +487,11 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
                   resolved = getContextValue(arg, context);
                 }
                 
-                if (helperName === "filter_by_year") {
-                  console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
-                  console.log("Context keys when resolving:", Object.keys(context));
-                }
+
                 return resolved;
               });
               
-              if (helperName === "filter_by_year") {
-                console.log(`🔍 filter_by_year: ${resolvedArgs[0]} (${resolvedArgs[1]?.length || 0} posts)`);
-              }
+
               
               value = helper(...resolvedArgs);
             } else {
