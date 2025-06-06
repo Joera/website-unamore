@@ -755,6 +755,9 @@
         const startPos = match.index;
         const arrayPath = match[1].trim();
         const alias = match[2];
+        console.log("Each block match:", match[0]);
+        console.log("Array path:", arrayPath);
+        console.log("Alias:", alias);
         let depth = 1;
         let pos = match.index + match[0].length;
         let endPos = -1;
@@ -803,6 +806,9 @@
                 };
                 if (alias) {
                   itemContext[alias] = item;
+                  itemContext.this = item;
+                  console.log(`Each item ${index} with alias "${alias}":`, item);
+                  console.log("Item context keys:", Object.keys(itemContext));
                 } else {
                   itemContext.this = item;
                   if (typeof item === "object" && item !== null && !Array.isArray(item)) {
@@ -870,15 +876,24 @@
               const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
               const helper = helperMap.get(helperName);
               if (helper) {
-                const resolvedArgs = args.map((arg) => {
+                const resolvedArgs = args.map((arg, index) => {
+                  let resolved;
                   if (arg.startsWith('"') && arg.endsWith('"')) {
-                    return arg.slice(1, -1);
+                    resolved = arg.slice(1, -1);
                   } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                    return arg.slice(1, -1);
+                    resolved = arg.slice(1, -1);
                   } else {
-                    return getContextValue(arg, context);
+                    resolved = getContextValue(arg, context);
                   }
+                  if (helperName === "filter_by_year") {
+                    console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
+                  }
+                  return resolved;
                 });
+                if (helperName === "filter_by_year") {
+                  console.log("Context keys:", Object.keys(context));
+                  console.log("Calling filter_by_year with:", resolvedArgs);
+                }
                 value = helper(...resolvedArgs);
               } else {
                 value = getContextValue(expression, context);

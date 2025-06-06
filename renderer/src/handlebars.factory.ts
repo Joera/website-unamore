@@ -265,7 +265,11 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
       const startPos = match.index;
       const arrayPath = match[1].trim();
       const alias = match[2];
-
+      
+      console.log("Each block match:", match[0]);
+      console.log("Array path:", arrayPath);
+      console.log("Alias:", alias);
+      
       // Find the matching {{/each}} by counting nested blocks
       let depth = 1;
       let pos = match.index + match[0].length;
@@ -327,7 +331,9 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
                   // If alias is provided, set the item under that name
                   itemContext[alias] = item;
                   // Keep this as the item for backward compatibility
-                  // itemContext.this = item;
+                  itemContext.this = item;
+                  console.log(`Each item ${index} with alias "${alias}":`, item);
+                  console.log("Item context keys:", Object.keys(itemContext));
                 } else {
                   // No alias - use original behavior
                   itemContext.this = item;
@@ -421,22 +427,31 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
           let value;
 
           if (expression.includes(" ")) {
-            const [helperName, ...args] = expression
-              .split(" ")
-              .map((part) => part.trim());
+            const [helperName, ...args] = expression.split(" ").map(part => part.trim());
             const helper = helperMap.get(helperName);
-
+            
             if (helper) {
-              const resolvedArgs = args.map((arg) => {
+              const resolvedArgs = args.map((arg, index) => {
+                let resolved;
                 if (arg.startsWith('"') && arg.endsWith('"')) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                  return arg.slice(1, -1);
+                  resolved = arg.slice(1, -1);
                 } else {
-                  return getContextValue(arg, context);
+                  resolved = getContextValue(arg, context);
                 }
+                
+                if (helperName === "filter_by_year") {
+                  console.log(`filter_by_year arg ${index} (${arg}) resolved to:`, resolved);
+                }
+                return resolved;
               });
-
+              
+              if (helperName === "filter_by_year") {
+                console.log("Context keys:", Object.keys(context));
+                console.log("Calling filter_by_year with:", resolvedArgs);
+              }
+              
               value = helper(...resolvedArgs);
             } else {
               value = getContextValue(expression, context);
