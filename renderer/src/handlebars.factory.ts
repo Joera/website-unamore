@@ -47,26 +47,20 @@ const getContextValue = (path: string, context: TemplateData): any => {
 
   // Handle this keyword
   if (trimmedPath === "this") {
-    const thisValue = context.this || context;
-    console.log("Resolving 'this' to:", thisValue);
-    return thisValue;
+    return context.this || context;
   }
 
   // Handle parent context traversal (../)
   if (trimmedPath.startsWith("../")) {
-    console.log("Resolving parent path:", trimmedPath, "in context with keys:", Object.keys(context));
     let currentContext = context;
     let remainingPath = trimmedPath;
     
     // Count how many levels up we need to go
     while (remainingPath.startsWith("../")) {
       remainingPath = remainingPath.slice(3); // Remove "../"
-      console.log("Going up one level, remaining path:", remainingPath);
       if (currentContext.parentContext) {
         currentContext = currentContext.parentContext;
-        console.log("New context keys:", Object.keys(currentContext));
       } else {
-        console.log("No parent context available");
         // If no parent context available, return undefined
         return undefined;
       }
@@ -74,12 +68,9 @@ const getContextValue = (path: string, context: TemplateData): any => {
     
     // Now resolve the remaining path in the parent context
     if (remainingPath === "") {
-      console.log("Returning parent context:", currentContext);
       return currentContext;
     } else {
-      const result = getContextValue(remainingPath, currentContext);
-      console.log(`Resolved ${remainingPath} in parent context to:`, result);
-      return result;
+      return getContextValue(remainingPath, currentContext);
     }
   }
 
@@ -299,27 +290,28 @@ const processEachBlocks = (text: string, context: TemplateData): string => {
         
         try {
           const array = getContextValue(arrayPath, context);
-          console.log("Each block - arrayPath:", arrayPath, "resolved to:", array);
           if (!Array.isArray(array)) {
             console.error("Each block array not found or not an array:", arrayPath);
             result = result.replace(fullMatch, "");
           } else {
             const processedContent = array
               .map((item, index) => {
-                console.log(`Each block - item ${index}:`, item);
                 // Create a context with special variables while preserving parent context
                 const itemContext = {
                   ...context, // Keep parent context
-                  this: item, // Set current item as 'this'
                   "@index": index,
                   "@first": index === 0,
                   "@last": index === array.length - 1,
                   "@key": arrayPath.split(".").pop() || "",
-                  ...item, // Spread item properties at top level
                   parentContext: context, // Preserve parent context reference
+                  this: item, // Set current item as 'this' (must be last to override)
                 };
-                console.log("Each block - itemContext keys:", Object.keys(itemContext));
-                console.log("Each block - itemContext.this:", itemContext.this);
+                
+                // Only spread item properties if item is an object (not primitive)
+                if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+                  Object.assign(itemContext, item);
+                  itemContext.this = item; // Ensure this stays as the item
+                }
 
                 return processTemplate(content, itemContext);
               })
@@ -396,41 +388,18 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
           
           if (expression.includes(" ")) {
             const [helperName, ...args] = expression.split(" ").map(part => part.trim());
-            console.log("Helper call:", helperName, "with args:", args);
             const helper = helperMap.get(helperName);
             
             if (helper) {
-              const resolvedArgs = args.map((arg, index) => {
-                let resolved;
+              const resolvedArgs = args.map(arg => {
                 if (arg.startsWith('"') && arg.endsWith('"')) {
-                  resolved = arg.slice(1, -1);
+                  return arg.slice(1, -1);
                 } else if (arg.startsWith("'") && arg.endsWith("'")) {
-                  resolved = arg.slice(1, -1);
+                  return arg.slice(1, -1);
                 } else {
-                  resolved = getContextValue(arg, context);
+                  return getContextValue(arg, context);
                 }
-                console.log(`Arg ${index} (${arg}) resolved to:`, resolved);
-                return resolved;
               });
-              console.log("Calling helper with resolved args:", resolvedArgs);
-              
-              // Special debug for filter_by_year
-              if (helperName === "filter_by_year") {
-                console.log("=== FILTER_BY_YEAR DEBUG ===");
-                console.log("Original expression:", expression);
-                console.log("Split args:", args);
-                console.log("Context keys:", Object.keys(context));
-                console.log("Context.this:", context.this);
-                console.log("Context.parentContext exists:", !!context.parentContext);
-                if (context.parentContext) {
-                  console.log("Parent context keys:", Object.keys(context.parentContext));
-                }
-                console.log("Resolved args:");
-                resolvedArgs.forEach((arg, i) => {
-                  console.log(`  [${i}]: ${typeof arg} -`, arg);
-                });
-                console.log("=== END DEBUG ===");
-              }
               
               value = helper(...resolvedArgs);
             } else {
