@@ -15,7 +15,7 @@ import { downloadHTML } from "./ipfs";
 import { getProtocolInfo } from "./protocol";
 
 const STREAM_ID =
-  "kjzl6kcym7w8y7slsym5p350cdssm7lh6md08knrp5be6kqlqkryh5sy5zptstl";
+  "kjzl6kcym7w8y5o1cet8h12dowx7wn8yqzvue85odlu207jvsmh04ktfpvyasga";
 const publication = "unamore.--web.eth";
 const safeAddress = "0xd065d8C47994cAC57e49785aCEE04FcA495afac4";
 
@@ -108,7 +108,7 @@ const main = async () => {
         safeAddress,
         publication,
         stream_id: STREAM_ID,
-        publish: false,
+        publish: true,
       },
     });
 
