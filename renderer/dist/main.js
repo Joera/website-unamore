@@ -619,23 +619,32 @@
       return context[trimmedPath];
     }
     if (trimmedPath === "this") {
-      return context.this || context;
+      const thisValue = context.this || context;
+      console.log("Resolving 'this' to:", thisValue);
+      return thisValue;
     }
     if (trimmedPath.startsWith("../")) {
+      console.log("Resolving parent path:", trimmedPath, "in context with keys:", Object.keys(context));
       let currentContext = context;
       let remainingPath = trimmedPath;
       while (remainingPath.startsWith("../")) {
         remainingPath = remainingPath.slice(3);
+        console.log("Going up one level, remaining path:", remainingPath);
         if (currentContext.parentContext) {
           currentContext = currentContext.parentContext;
+          console.log("New context keys:", Object.keys(currentContext));
         } else {
+          console.log("No parent context available");
           return void 0;
         }
       }
       if (remainingPath === "") {
+        console.log("Returning parent context:", currentContext);
         return currentContext;
       } else {
-        return getContextValue(remainingPath, currentContext);
+        const result = getContextValue(remainingPath, currentContext);
+        console.log(`Resolved ${remainingPath} in parent context to:`, result);
+        return result;
       }
     }
     if (context.this && typeof context.this === "object") {
@@ -782,11 +791,13 @@
           const fullMatch = result.substring(startPos, endPos + 9);
           try {
             const array = getContextValue(arrayPath, context);
+            console.log("Each block - arrayPath:", arrayPath, "resolved to:", array);
             if (!Array.isArray(array)) {
               console.error("Each block array not found or not an array:", arrayPath);
               result = result.replace(fullMatch, "");
             } else {
               const processedContent = array.map((item, index) => {
+                console.log(`Each block - item ${index}:`, item);
                 const itemContext = {
                   ...context,
                   // Keep parent context
@@ -801,6 +812,8 @@
                   parentContext: context
                   // Preserve parent context reference
                 };
+                console.log("Each block - itemContext keys:", Object.keys(itemContext));
+                console.log("Each block - itemContext.this:", itemContext.this);
                 return processTemplate(content, itemContext);
               }).join("");
               result = result.replace(fullMatch, processedContent);
@@ -859,13 +872,38 @@
             let value;
             if (expression.includes(" ")) {
               const [helperName, ...args] = expression.split(" ").map((part) => part.trim());
+              console.log("Helper call:", helperName, "with args:", args);
               const helper = helperMap.get(helperName);
               if (helper) {
-                const resolvedArgs = args.map((arg) => {
-                  if (arg.startsWith('"') && arg.endsWith('"')) return arg.slice(1, -1);
-                  if (arg.startsWith("'") && arg.endsWith("'")) return arg.slice(1, -1);
-                  return getContextValue(arg, context);
+                const resolvedArgs = args.map((arg, index) => {
+                  let resolved;
+                  if (arg.startsWith('"') && arg.endsWith('"')) {
+                    resolved = arg.slice(1, -1);
+                  } else if (arg.startsWith("'") && arg.endsWith("'")) {
+                    resolved = arg.slice(1, -1);
+                  } else {
+                    resolved = getContextValue(arg, context);
+                  }
+                  console.log(`Arg ${index} (${arg}) resolved to:`, resolved);
+                  return resolved;
                 });
+                console.log("Calling helper with resolved args:", resolvedArgs);
+                if (helperName === "filter_by_year") {
+                  console.log("=== FILTER_BY_YEAR DEBUG ===");
+                  console.log("Original expression:", expression);
+                  console.log("Split args:", args);
+                  console.log("Context keys:", Object.keys(context));
+                  console.log("Context.this:", context.this);
+                  console.log("Context.parentContext exists:", !!context.parentContext);
+                  if (context.parentContext) {
+                    console.log("Parent context keys:", Object.keys(context.parentContext));
+                  }
+                  console.log("Resolved args:");
+                  resolvedArgs.forEach((arg, i) => {
+                    console.log(`  [${i}]: ${typeof arg} -`, arg);
+                  });
+                  console.log("=== END DEBUG ===");
+                }
                 value = helper(...resolvedArgs);
               } else {
                 value = getContextValue(expression, context);
