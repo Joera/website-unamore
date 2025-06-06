@@ -505,13 +505,7 @@ const processWithBlocks = (text: string, context: TemplateData): string => {
               });
               
               if (helperName === "filter_by_year") {
-                console.log("=== FILTER_BY_YEAR DEBUG ===");
-                console.log("Expression:", expression);
-                console.log("Args:", args);
-                console.log("Resolved args:", resolvedArgs);
-                console.log("Context has year?", context.hasOwnProperty("year"));
-                console.log("Context.year:", context["year"]);
-                console.log("=== END DEBUG ===");
+                console.log(`🔍 filter_by_year: ${resolvedArgs[0]} (${resolvedArgs[1]?.length || 0} posts)`);
               }
               
               value = helper(...resolvedArgs);

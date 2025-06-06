@@ -55,7 +55,11 @@ export const helpers = [
     name: "filter_by_year",
     helper: function (year, posts) {
       console.log("filter year", year);
-      console.log("filter posts", posts);
+      console.log("filter posts", posts?.map(p => ({ 
+        title: p?.title, 
+        creation_date: p?.creation_date,
+        stream_id: p?.stream_id?.slice(0, 20) + '...'
+      })) || []);
 
       if (!posts || !Array.isArray(posts) || !year) {
         return [];
