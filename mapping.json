@@ -84,10 +84,10 @@
   ],
   "ripples": [
     {
-      "origins": ["_post"],
+      "origins": ["post"],
       "destination": "archief",
       "reference": "archief",
-      "query": "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' AND language = '{{lang}}' ORDER BY creation_date ASC;"
+      "query": "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' ORDER BY creation_date ASC;"
     },
     {
       "origins": ["painting"],

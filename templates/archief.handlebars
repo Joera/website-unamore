@@ -22,14 +22,17 @@
 
                <ul>
                {{#with unique_years posts as |years|}}
-                     {{#each years}}
-                            <li class="year_breaker">{{this}}</li>
-                    <!--    {{#with filter_by_year this ../posts as |filtered|}}
-                                   {{#each filtered}}
-                                          <li><a href="./{{slugify title}}">{{title}}</a></li>
-                                   {{/each}}
-                            {{/with}} -->
-                     {{/each}}
+                    {{#each years as |year|}}
+                        <li class="year_breaker">{{year}}</li>
+                        {{#with filter_by_year year ../../posts as |filtered|}}
+                            {{#each filtered}}
+                                <li>
+                                    <a href="{{this.path}}">{{this.title}}</a>
+                                </li>
+                            {{/each}}
+                        {{/with}}
+                    {{/each}}
+
                {{/with}}
                </ul>
        </section>
