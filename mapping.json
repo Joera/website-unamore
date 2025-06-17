@@ -33,7 +33,7 @@
       "path": "/nieuwsbrieven/",
       "collections": [
         {
-          "slug": "posts",
+          "slug": "nieuwsbrieven",
           "source": "orbisdb",
           "key": "posts",
           "value": "post",
