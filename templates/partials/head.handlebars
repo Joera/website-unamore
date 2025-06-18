@@ -3,10 +3,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unamore</title>
+
+    <meta name="description" content="{{#if description}}{{description}}{{else}}Soul2Soul: A decentralized publishing platform without intermediaries{{/if}}">
+    <meta name="author" content="{{author}}">
+    <meta name="publication" content="{{publication}}">
+
     <style id="custom-css"></style>
     <script>
     fetch("insert_stylesheet.css").then(response => response.text()).then(css => {document.getElementById("custom-css").textContent = css;});
     </script>
 
-    <link rel="stylesheet" href="{{assets_gateway}}/ipfs/bafkreia76cepej4biuwhgdjzaooygj57blkttmyn5jlebbfc7qmdoxyzw4?filename=styles.css">
+    <link rel="stylesheet" type="text/css" href="https://cloud.typography.com/7060374/6317832/css/fonts.css" />
+    <link id="main" rel="stylesheet" href="{{assets_gateway}}/ipfs/bafkreia76cepej4biuwhgdjzaooygj57blkttmyn5jlebbfc7qmdoxyzw4?filename=styles.css">
 </head>
