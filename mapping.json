@@ -10,22 +10,7 @@
       "reference": "post",
       "file": "post.handlebars",
       "path": "/nieuwsbrieven/{slug}/",
-      "collections": [
-        {
-          "slug": "body",
-          "source": "orbisdb",
-          "key": "posts",
-          "value": "post",
-          "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
-        },
-        {
-          "slug": "posts",
-          "source": "orbisdb",
-          "key": "posts",
-          "value": "post",
-          "query": "SELECT * from {{table}} WHERE publications = '{{publication}}' AND post_type = 'post' LIMIT 2"
-        }
-      ]
+      "collections": []
     },
     {
       "reference": "archief",
