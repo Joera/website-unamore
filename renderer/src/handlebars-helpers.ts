@@ -98,55 +98,61 @@ export const helpers = [
           try {
             const dateStr = post.creation_date;
             let matches = false;
+            let timestamp = 0;
 
             // Check if it's a Unix timestamp
             if (/^\d+$/.test(dateStr)) {
-              const date = new Date(parseInt(dateStr) * 1000);
+              timestamp = parseInt(dateStr);
+              const date = new Date(timestamp * 1000);
               const postYear = date.getFullYear().toString();
               if (postYear === year) {
                 matches = true;
               }
             } else {
-              // Extract year using regex
-              const match = dateStr.match(/\b(19|20)\d{2}\b/);
-              if (match && match[0] === year) {
+              // Try to extract year from date string
+              const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+              if (yearMatch && yearMatch[0] === year) {
                 matches = true;
-              } else if (
-                dateStr.length >= 4 &&
-                dateStr.substring(0, 4) === year
-              ) {
+                // Try to convert to timestamp if it's an ISO date
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                  timestamp = Math.floor(date.getTime() / 1000);
+                }
+              } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                 matches = true;
               }
             }
 
+            // If we match the year, add the post to filtered list
             if (matches) {
-              filtered.push(post);
+              filtered.push({
+                ...post,
+                _timestamp: timestamp
+              });
             }
           } catch (e) {
             console.error("Error processing post in filter_by_year:", e);
           }
         }
 
-        // Log a compact representation of the filtered posts
-        console.log(`Found ${filtered.length} posts for year ${year}:`, 
-          filtered.slice(0, 3).map(post => ({
-            title: post.title,
-            date: post.creation_date
-          }))
-        );
+        console.log(`Found ${filtered.length} posts for year ${year}`);
 
-        // Sort by creation_date in descending order (newest first)
+        // Simple sort by creation_date in descending order (newest first)
         filtered.sort((a, b) => {
-          const dateA = a.creation_date || 0;
-          const dateB = b.creation_date || 0;
+          const dateA = a._timestamp || (a.creation_date ? parseInt(a.creation_date) : 0);
+          const dateB = b._timestamp || (b.creation_date ? parseInt(b.creation_date) : 0);
           return dateB - dateA; // Descending order
         });
-
-        // Log the final structure to ensure compatibility with template
-        console.log(`Final sorted structure (first item only):`, 
-          filtered.length > 0 ? 
-          {title: filtered[0].title, path: filtered[0].path} : 
-          'No posts');
+        
+        // Log a preview of the sorted posts
+        if (filtered.length > 0) {
+          console.log(`Sorted posts for ${year}:`, 
+            filtered.slice(0, 3).map(post => ({
+              title: post.title,
+              date: post.creation_date
+            }))
+          );
+        }
 
         return filtered;
       } catch (error) {

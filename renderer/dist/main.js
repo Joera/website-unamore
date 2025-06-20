@@ -59,43 +59,51 @@
             try {
               const dateStr = post.creation_date;
               let matches = false;
+              let timestamp = 0;
               if (/^\d+$/.test(dateStr)) {
-                const date = new Date(parseInt(dateStr) * 1e3);
+                timestamp = parseInt(dateStr);
+                const date = new Date(timestamp * 1e3);
                 const postYear = date.getFullYear().toString();
                 if (postYear === year) {
                   matches = true;
                 }
               } else {
-                const match = dateStr.match(/\b(19|20)\d{2}\b/);
-                if (match && match[0] === year) {
+                const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+                if (yearMatch && yearMatch[0] === year) {
                   matches = true;
+                  const date = new Date(dateStr);
+                  if (!isNaN(date.getTime())) {
+                    timestamp = Math.floor(date.getTime() / 1e3);
+                  }
                 } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                   matches = true;
                 }
               }
               if (matches) {
-                filtered.push(post);
+                filtered.push({
+                  ...post,
+                  _timestamp: timestamp
+                });
               }
             } catch (e) {
               console.error("Error processing post in filter_by_year:", e);
             }
           }
-          console.log(
-            `Found ${filtered.length} posts for year ${year}:`,
-            filtered.slice(0, 3).map((post) => ({
-              title: post.title,
-              date: post.creation_date
-            }))
-          );
+          console.log(`Found ${filtered.length} posts for year ${year}`);
           filtered.sort((a, b) => {
-            const dateA = a.creation_date || 0;
-            const dateB = b.creation_date || 0;
+            const dateA = a._timestamp || (a.creation_date ? parseInt(a.creation_date) : 0);
+            const dateB = b._timestamp || (b.creation_date ? parseInt(b.creation_date) : 0);
             return dateB - dateA;
           });
-          console.log(
-            `Final sorted structure (first item only):`,
-            filtered.length > 0 ? { title: filtered[0].title, path: filtered[0].path } : "No posts"
-          );
+          if (filtered.length > 0) {
+            console.log(
+              `Sorted posts for ${year}:`,
+              filtered.slice(0, 3).map((post) => ({
+                title: post.title,
+                date: post.creation_date
+              }))
+            );
+          }
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);

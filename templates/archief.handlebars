@@ -19,20 +19,18 @@
        </section>
 
        <section id="archief" class="small-container">
-
                <ul>
                {{#with unique_years nieuwsbrieven as |years|}}
                     {{#each years as |year|}}
                         <li class="year_breaker">{{year}}</li>
                         {{#with filter_by_year year ../../nieuwsbrieven as |filtered|}}
                             {{#each filtered}}
-                                <li>
+                                <li class="newsletter-item">
                                     <a href="{{this.path}}">{{this.title}}</a>
                                 </li>
                             {{/each}}
                         {{/with}}
                     {{/each}}
-
                {{/with}}
                </ul>
        </section>
