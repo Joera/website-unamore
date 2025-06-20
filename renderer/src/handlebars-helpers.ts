@@ -120,21 +120,33 @@ export const helpers = [
             }
 
             if (matches) {
-              filtered.push(year, post);
+              filtered.push(post);
             }
           } catch (e) {
             console.error("Error processing post in filter_by_year:", e);
           }
         }
 
-        console.log(Object.keys(filtered[0]));
+        // Log a compact representation of the filtered posts
+        console.log(`Found ${filtered.length} posts for year ${year}:`, 
+          filtered.slice(0, 3).map(post => ({
+            title: post.title,
+            date: post.creation_date
+          }))
+        );
 
+        // Sort by creation_date in descending order (newest first)
         filtered.sort((a, b) => {
-          // Sort by creation_date in descending order (newest first)
           const dateA = a.creation_date || 0;
           const dateB = b.creation_date || 0;
           return dateB - dateA; // Descending order
         });
+
+        // Log the final structure to ensure compatibility with template
+        console.log(`Final sorted structure (first item only):`, 
+          filtered.length > 0 ? 
+          {title: filtered[0].title, path: filtered[0].path} : 
+          'No posts');
 
         return filtered;
       } catch (error) {
