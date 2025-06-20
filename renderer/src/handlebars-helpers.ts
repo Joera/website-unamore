@@ -129,12 +129,12 @@ export const helpers = [
 
         console.log(filtered);
 
-        filtered.sort((a, b) => {
-          // Sort by creation_date in descending order (newest first)
-          const dateA = a.creation_date || 0;
-          const dateB = b.creation_date || 0;
-          return dateB - dateA; // Descending order
-        });
+        // filtered.sort((a, b) => {
+        //   // Sort by creation_date in descending order (newest first)
+        //   const dateA = a.creation_date || 0;
+        //   const dateB = b.creation_date || 0;
+        //   return dateB - dateA; // Descending order
+        // });
 
         return filtered;
       } catch (error) {
