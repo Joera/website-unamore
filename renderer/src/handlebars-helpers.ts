@@ -4,17 +4,22 @@ function logObjectWithPosts(label: string, data: any) {
     const truncatedPosts = data.map((p) => ({
       title: p?.title,
       creation_date: p?.creation_date,
-      stream_id: p?.stream_id?.slice(0, 20) + "..."
+      stream_id: p?.stream_id?.slice(0, 20) + "...",
     }));
     console.log(label, truncatedPosts);
-  } else if (data && typeof data === 'object' && data.posts && Array.isArray(data.posts)) {
+  } else if (
+    data &&
+    typeof data === "object" &&
+    data.posts &&
+    Array.isArray(data.posts)
+  ) {
     const truncatedData = {
       ...data,
       posts: data.posts.map((p) => ({
         title: p?.title,
         creation_date: p?.creation_date,
-        stream_id: p?.stream_id?.slice(0, 20) + "..."
-      }))
+        stream_id: p?.stream_id?.slice(0, 20) + "...",
+      })),
     };
     console.log(label, truncatedData);
   } else {
@@ -121,6 +126,13 @@ export const helpers = [
             console.error("Error processing post in filter_by_year:", e);
           }
         }
+
+        filtered.sort((a, b) => {
+          // Sort by creation_date in descending order (newest first)
+          const dateA = a.creation_date || 0;
+          const dateB = b.creation_date || 0;
+          return dateB - dateA; // Descending order
+        });
 
         return filtered;
       } catch (error) {

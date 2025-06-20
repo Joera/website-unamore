@@ -80,6 +80,11 @@
               console.error("Error processing post in filter_by_year:", e);
             }
           }
+          filtered.sort((a, b) => {
+            const dateA = a.creation_date || 0;
+            const dateB = b.creation_date || 0;
+            return dateB - dateA;
+          });
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
