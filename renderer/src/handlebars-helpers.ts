@@ -127,7 +127,7 @@ export const helpers = [
           }
         }
 
-        console.log(filtered[0].creation_date);
+        console.log(Object.keys(filtered[0]));
 
         filtered.sort((a, b) => {
           // Sort by creation_date in descending order (newest first)
