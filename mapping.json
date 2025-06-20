@@ -41,7 +41,7 @@
     {
       "reference": "serie",
       "file": "serie.handlebars",
-      "path": "/serie/{slug}/",
+      "path": "/schilderijen/{slug}/",
       "collections": []
     }
   ],
