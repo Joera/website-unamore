@@ -8,12 +8,12 @@
   <aside>
       {{> nav }}
   </aside>
- 
+
  <main>
 
   <section class="small-container serie-container">
     <article class="series_introduction">
-        
+
         <h1>{{title}}</h1>
         <div>
             {{{content}}}
@@ -21,21 +21,21 @@
     </article>
 
 
-    {{#each collections.paintings as |c| }} 
-        
+    {{#each serie as |p| }}
+
         <article class="painting">
-            <img src="../../img/1200/{{c.image}}.jpg" />
+            <img src="{{assets_gateway}}/ipfs/{{p.image}}" />
             <div class="block_painting">
-                <h3>{{{c.title}}}</h3>
-                <div>{{{c.nl_description}}}</div>
-                <span>{{{c.method}}}</span>
-                <span>{{{c.size}}}</span>
+                <h3>{{{p.title}}}</h3>
+                <div>{{{p.content}}}</div>
+                <span>{{{p.method}}}</span>
+                <span>{{{p.size}}}</span>
             </div>
         </article>
 
     {{/each}}
 
-  </section> 
+  </section>
 
    {{> tabs }}
 
