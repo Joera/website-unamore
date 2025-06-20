@@ -120,12 +120,14 @@ export const helpers = [
             }
 
             if (matches) {
-              filtered.push(post);
+              filtered.push(year, post);
             }
           } catch (e) {
             console.error("Error processing post in filter_by_year:", e);
           }
         }
+
+        console.log(filtered);
 
         filtered.sort((a, b) => {
           // Sort by creation_date in descending order (newest first)
