@@ -86,24 +86,13 @@
                 });
               }
             } catch (e) {
-              console.error("Error processing post in filter_by_year:", e);
             }
           }
-          console.log(`Found ${filtered.length} posts for year ${year}`);
           filtered.sort((a, b) => {
             const dateA = a._timestamp || (a.creation_date ? parseInt(a.creation_date) : 0);
             const dateB = b._timestamp || (b.creation_date ? parseInt(b.creation_date) : 0);
             return dateB - dateA;
           });
-          if (filtered.length > 0) {
-            console.log(
-              `Sorted posts for ${year}:`,
-              filtered.slice(0, 3).map((post) => ({
-                title: post.title,
-                date: post.creation_date
-              }))
-            );
-          }
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
