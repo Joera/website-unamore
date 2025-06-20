@@ -80,7 +80,7 @@
               console.error("Error processing post in filter_by_year:", e);
             }
           }
-          console.log(filtered[0].creation_date);
+          console.log(Object.keys(filtered[0]));
           filtered.sort((a, b) => {
             const dateA = a.creation_date || 0;
             const dateB = b.creation_date || 0;
