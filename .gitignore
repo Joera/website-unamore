@@ -4,3 +4,6 @@ ipfs-upload.js
 .env
 pnpm-lock.yaml
 html
+node-renderer/.env
+node-renderer/node_modules
+node-renderer/dist

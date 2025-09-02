@@ -1,4 +1,4 @@
-# Logging Rules for Objects Containing Posts
+# Logging   Rules for Objects Containing Posts
 
 ## Overview
 
@@ -18,7 +18,7 @@ Direct logging of these objects creates unreadable debug output that makes it di
 
 Use the `logObjectWithPosts()` utility function that automatically truncates post data to show only essential fields:
 - `title`
-- `creation_date` 
+- `creation_date`
 - `stream_id` (truncated to first 20 characters + "...")
 
 ## Usage Examples
