@@ -111,8 +111,8 @@ export const decrypt = async (
   await litNodeClient.connect();
   const authSig  = await getSessionSignatures(litNodeClient);
 
-  console.log(ucc);
-  console.log(authSig);
+//   console.log(ucc);
+//   console.log(authSig);
 
   try {
     const decryptionParams = {
@@ -127,6 +127,8 @@ export const decrypt = async (
     
     // Convert Uint8Array to string if needed
     const decrypted = new TextDecoder().decode(decryptedData.decryptedData);
+
+    console.log(decrypted);
     
     await litNodeClient.disconnect();
     return decrypted;
