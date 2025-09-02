@@ -59,27 +59,40 @@
             try {
               const dateStr = post.creation_date;
               let matches = false;
+              let timestamp = 0;
               if (/^\d+$/.test(dateStr)) {
-                const date = new Date(parseInt(dateStr) * 1e3);
+                timestamp = parseInt(dateStr);
+                const date = new Date(timestamp * 1e3);
                 const postYear = date.getFullYear().toString();
                 if (postYear === year) {
                   matches = true;
                 }
               } else {
-                const match = dateStr.match(/\b(19|20)\d{2}\b/);
-                if (match && match[0] === year) {
+                const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+                if (yearMatch && yearMatch[0] === year) {
                   matches = true;
+                  const date = new Date(dateStr);
+                  if (!isNaN(date.getTime())) {
+                    timestamp = Math.floor(date.getTime() / 1e3);
+                  }
                 } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                   matches = true;
                 }
               }
               if (matches) {
-                filtered.push(post);
+                filtered.push({
+                  ...post,
+                  _timestamp: timestamp
+                });
               }
             } catch (e) {
-              console.error("Error processing post in filter_by_year:", e);
             }
           }
+          filtered.sort((a, b) => {
+            const dateA = a._timestamp || (a.creation_date ? parseInt(a.creation_date) : 0);
+            const dateB = b._timestamp || (b.creation_date ? parseInt(b.creation_date) : 0);
+            return dateB - dateA;
+          });
           return filtered;
         } catch (error) {
           console.error("Error in filter_by_year helper:", error);
@@ -1106,7 +1119,9 @@
   var main = async () => {
     try {
       const result = await renderHTML(config, templateConfig, templateData);
-      LitActions.setResponse({ response: JSON.stringify({ success: true, html: result }) });
+      LitActions.setResponse({
+        response: JSON.stringify({ success: true, html: result })
+      });
     } catch (error) {
       console.log("Error updating root:", error);
       LitActions.setResponse({ response: JSON.stringify({ error }) });

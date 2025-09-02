@@ -13,7 +13,7 @@ interface PKP {
 
 export const getProtocolInfo = async () => {
   try {
-    const addr = await getContractAddress("--protocol.eth");
+    const addr = await getContractAddress("dev.--protocol.eth");
 
     if (!addr || addr === "false") {
       return JSON.stringify({

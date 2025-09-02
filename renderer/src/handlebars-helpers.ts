@@ -4,17 +4,22 @@ function logObjectWithPosts(label: string, data: any) {
     const truncatedPosts = data.map((p) => ({
       title: p?.title,
       creation_date: p?.creation_date,
-      stream_id: p?.stream_id?.slice(0, 20) + "..."
+      stream_id: p?.stream_id?.slice(0, 20) + "...",
     }));
     console.log(label, truncatedPosts);
-  } else if (data && typeof data === 'object' && data.posts && Array.isArray(data.posts)) {
+  } else if (
+    data &&
+    typeof data === "object" &&
+    data.posts &&
+    Array.isArray(data.posts)
+  ) {
     const truncatedData = {
       ...data,
       posts: data.posts.map((p) => ({
         title: p?.title,
         creation_date: p?.creation_date,
-        stream_id: p?.stream_id?.slice(0, 20) + "..."
-      }))
+        stream_id: p?.stream_id?.slice(0, 20) + "...",
+      })),
     };
     console.log(label, truncatedData);
   } else {
@@ -93,37 +98,53 @@ export const helpers = [
           try {
             const dateStr = post.creation_date;
             let matches = false;
+            let timestamp = 0;
 
             // Check if it's a Unix timestamp
             if (/^\d+$/.test(dateStr)) {
-              const date = new Date(parseInt(dateStr) * 1000);
+              timestamp = parseInt(dateStr);
+              const date = new Date(timestamp * 1000);
               const postYear = date.getFullYear().toString();
               if (postYear === year) {
                 matches = true;
               }
             } else {
-              // Extract year using regex
-              const match = dateStr.match(/\b(19|20)\d{2}\b/);
-              if (match && match[0] === year) {
+              // Try to extract year from date string
+              const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+              if (yearMatch && yearMatch[0] === year) {
                 matches = true;
-              } else if (
-                dateStr.length >= 4 &&
-                dateStr.substring(0, 4) === year
-              ) {
+                // Try to convert to timestamp if it's an ISO date
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                  timestamp = Math.floor(date.getTime() / 1000);
+                }
+              } else if (dateStr.length >= 4 && dateStr.substring(0, 4) === year) {
                 matches = true;
               }
             }
 
+            // If we match the year, add the post to filtered list
             if (matches) {
-              filtered.push(post);
+              filtered.push({
+                ...post,
+                _timestamp: timestamp
+              });
             }
           } catch (e) {
-            console.error("Error processing post in filter_by_year:", e);
+            // Silently continue if there's an error processing a post
           }
         }
 
+        // Simple sort by creation_date in descending order (newest first)
+        filtered.sort((a, b) => {
+          const dateA = a._timestamp || (a.creation_date ? parseInt(a.creation_date) : 0);
+          const dateB = b._timestamp || (b.creation_date ? parseInt(b.creation_date) : 0);
+          return dateB - dateA; // Descending order
+        });
+
         return filtered;
       } catch (error) {
+        // Log error but continue
         console.error("Error in filter_by_year helper:", error);
         return [];
       }

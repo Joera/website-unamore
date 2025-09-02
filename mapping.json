@@ -10,22 +10,7 @@
       "reference": "post",
       "file": "post.handlebars",
       "path": "/nieuwsbrieven/{slug}/",
-      "collections": [
-        {
-          "slug": "body",
-          "source": "orbisdb",
-          "key": "posts",
-          "value": "post",
-          "query": "SELECT * from {{table}} WHERE stream_id = {{id}}"
-        },
-        {
-          "slug": "posts",
-          "source": "orbisdb",
-          "key": "posts",
-          "value": "post",
-          "query": "SELECT * from {{table}} WHERE publications = '{{publication}}' AND post_type = 'post' LIMIT 2"
-        }
-      ]
+      "collections": []
     },
     {
       "reference": "archief",
@@ -33,11 +18,11 @@
       "path": "/nieuwsbrieven/",
       "collections": [
         {
-          "slug": "posts",
+          "slug": "nieuwsbrieven",
           "source": "orbisdb",
           "key": "posts",
           "value": "post",
-          "query": "SELECT * from {{table}} WHERE publications ? '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC"
+          "query": "SELECT * from {{table}} WHERE publications ? '{{publication}}' AND post_type = 'post' ORDER BY creation_date DESC LIMIT 16"
         }
       ]
     },
@@ -54,32 +39,10 @@
       "collections": []
     },
     {
-      "reference": "serie_v1",
-      "file": "serie_v1.handlebars",
-      "path": "/serie/{slug}/",
-      "collections": [
-        {
-          "slug": "paintings",
-          "source": "tableland",
-          "key": "paintings",
-          "value": "args",
-          "query": "SELECT * from {{table}} WHERE post_type = 'painting' AND tags LIKE '%{value}%' ORDER BY parent ASC"
-        }
-      ]
-    },
-    {
       "reference": "serie",
       "file": "serie.handlebars",
       "path": "/schilderijen/{slug}/",
-      "collections": [
-        {
-          "slug": "images",
-          "source": "rest",
-          "key": "images",
-          "value": "",
-          "query": "http://unamore.publikaan.nl/api/?tags=cd.{<args>}"
-        }
-      ]
+      "collections": []
     }
   ],
   "ripples": [
@@ -88,12 +51,6 @@
       "destination": "archief",
       "reference": "archief",
       "query": "SELECT * FROM {{table}} WHERE publications ? '{{publication}}' AND post_type = 'archief' ORDER BY creation_date ASC;"
-    },
-    {
-      "origins": ["painting"],
-      "destination": "serie_v1",
-      "reference": "tag",
-      "query": "SELECT * from {{table}} WHERE post_type = 'serie_v1' AND title LIKE '%{value}%' ORDER BY creation_date ASC;"
     }
   ]
 }
