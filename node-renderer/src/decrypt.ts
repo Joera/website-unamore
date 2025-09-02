@@ -64,7 +64,7 @@ async function getSessionSignatures(litNodeClient: any) {
     const latestBlockhash = await litNodeClient.getLatestBlockhash();
 
     const uri = "https://soul2soul.io"
-    const expiration = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hours from now
+    const expiration = new Date(Date.now() + 1000 * 60).toISOString(); // 1 minute from now
 
     const resourceAbilityRequests = [
         {
@@ -105,7 +105,7 @@ export const decrypt = async (
 
   // Initialize Lit client
   const litNodeClient = new LitNodeClient({
-    litNetwork: LitNetwork.DatilDev, // or whatever network you're using
+    litNetwork: LitNetwork.Datil, 
   });
   
   await litNodeClient.connect();
@@ -123,18 +123,18 @@ export const decrypt = async (
       chain: "baseSepolia",
     };
 
-//     const decryptedData = await litNodeClient.decrypt(decryptionParams);
+    const decryptedData = await litNodeClient.decrypt(decryptionParams);
     
-//     // Convert Uint8Array to string if needed
-//     const decrypted = new TextDecoder().decode(decryptedData.decryptedData);
+    // Convert Uint8Array to string if needed
+    const decrypted = new TextDecoder().decode(decryptedData.decryptedData);
     
-//     await litNodeClient.disconnect();
-//     return decrypted;
-//   } catch (error) {
-//     console.error("WARNING: could not decrypt " + body.stream_id, error);
-//     await litNodeClient.disconnect();
-//     return undefined;
-//   }
+    await litNodeClient.disconnect();
+    return decrypted;
+  } catch (error) {
+    console.error("WARNING: could not decrypt " + body.stream_id, error);
+    await litNodeClient.disconnect();
+    return undefined;
+  }
 
-return undefined;
+
 };
